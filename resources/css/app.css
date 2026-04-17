@@ -1,0 +1,588 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+    body {
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 2rem;
+        color: #1f2937;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        
+        /* Shared background properties */
+        background-size: 400px 400px;
+        background-repeat: repeat;
+    }
+    /* 2. Tanya (Ars) - Clinic ID 1 */
+    body.clinic-1 {
+        background-image: url("../images/teeth-pattern-blue.svg"); /* Or whatever Ars uses */
+        background-color: #3b82f6; /* A nice 'Ars' Blue */
+    }
+
+    /* 3. Mint (Dsm) - Clinic ID 2 */
+    body.clinic-2 {
+        background-image: url("../images/teeth-pattern.svg");
+        background-color: #4bc35b; /* That Minty green you like */
+    }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .left-column {
+            flex-shrink: 0;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .right-column {
+            flex: 1;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .or-divider {
+            text-align: center;
+            margin: 1rem 0;
+            color: #9ca3af;
+        }
+
+        /* Container for the dropdown */
+        /* The main container for the dropdown */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* The button that opens the dropdown */
+        .user-dropdown-button {
+            background-color: #f1f1f1;
+            color: black;
+            padding: 16px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* The dropdown content (hidden by default) */
+        .user-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        /* The links inside the dropdown */
+        .user-dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        /* Change link color on hover */
+        .user-dropdown-content a:hover {
+            background-color: #ddd;
+        }
+
+        /* Show the dropdown menu when the button is hovered over */
+        .user-dropdown:hover .user-dropdown-content {
+            display: block;
+        }
+
+        /* CSS from show is below */
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        .heading {
+            text-align: left;
+            margin-bottom: 2rem;
+            color: #111827;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .tab-button {
+            background-color: transparent;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: border-color 0.2s, color 0.2s;
+            color: #6b7280;
+        }
+
+        .tab-button.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .no-records {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 1.25rem;
+            margin-top: 2rem;
+        }
+        .button-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 1rem;
+         }
+        .btn-primary {
+            background-color: #8BC34A;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #689F38;
+        }
+        .btn-secondary {
+            background-color: #8BC34A;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 0.25rem 0.5rem; /* Reduced padding */
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.625rem; /* Reduced font size */
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #689F38;
+        }
+        .orange-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #f97316;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .green-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .clinical-record {
+            font-weight: bold;
+        }
+
+
+        .tooltip {
+            position: relative;
+            cursor: help; /* Adds a little question mark to the cursor - very British and polite */
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            min-width: 250px;
+            max-width: 400px;
+            width: max-content;
+
+            /* 1. Improved Background (Softer than pitch black) */
+            background-color: #115e59;
+            color: #ffffff;
+
+            /* 2. Text Wrapping */
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.5;
+
+            text-align: left;
+            border-radius: 6px;
+            padding: 12px;
+            position: fixed;
+            z-index: 9999;
+            top: -9999px;
+            left: -9999px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-weight: normal;
+            font-size: 0.875rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Optional: Add the arrow back in so it points to the tooth */
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            top: auto;
+            left: 12px;
+            margin-left: 0;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent #115e59 transparent;
+        }
+
+        /* Visibility controlled by JS — see show.blade.php tooltip script */
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .btn-add-record {
+            background-color: #8BC34A;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .btn-add-record:hover {
+            background-color: #689F38;
+        }
+        .highlighted-estimate {
+            background-color: #fff7ed;
+        }
+        .form-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .estimate-field {
+            background-color: #fff0e6;
+        }
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .alert-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        h1 {
+            text-align: left;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        /* Styling for the overall dropdown container */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        /* Style the button that shows the username */
+        .user-dropdown-button {
+            background-color: #f1f1f1;
+            color: black;
+            padding: 12px 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px; /* Added rounded corners */
+            font-weight: bold;
+            text-align: left;
+            min-width: 160px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Added a subtle shadow */
+        }
+
+        /* The dropdown menu content itself */
+        .user-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0; /* Aligns the dropdown to the right side of the button */
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 8px; /* Added rounded corners to the panel */
+            padding: 8px 0; /* Added internal padding */
+            margin-top: 5px; /* Added spacing from the button */
+        }
+
+        /* Styling for the links inside the dropdown */
+        .user-dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.2s ease-in-out; /* Smooth transition on hover */
+        }
+
+        /* Hover effect for the links */
+        .user-dropdown-content a:hover {
+            background-color: #e2e2e2;
+        }
+
+        /* Show the dropdown menu on hover or when the 'show' class is added by JS */
+        .user-dropdown:hover .user-dropdown-content {
+            display: block;
+        }
+
+        .user-dropdown-content.show {
+            display: block;
+        }
+        .user-dropdown-content form button {
+            background: none;
+            color: inherit;
+            border: none;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .user-dropdown-content form button:hover {
+            background-color: #e2e2e2;
+        }
+        /* Style for the logout button */
+        .user-dropdown-content form button {
+            background-color: #ef4444; /* A nice bright red */
+            color: #fff; /* White text for contrast */
+            border-radius: 4px; /* Optional: adds rounded corners */
+            transition: background-color 0.2s ease-in-out; /* Smooth hover effect */
+        }
+
+        /* Hover effect for the logout button */
+        .user-dropdown-content form button:hover {
+            background-color: #b91c1c; /* A darker red on hover */
+        }
+	.patient-form-wrapper {
+	max-width: 600px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+/* Custom font for digital clock effect */
+@layer components {
+    .digital-clock-frame {
+        /* Fixed dimensions to prevent jumping when content changes */
+        width: 65px; 
+        height: 32px;
+        line-height: 32px;
+        text-align: center;
+        /* Blue background matching Arusha palette */
+        background-color: #dbeafe; /* Tailwind blue-100 */
+        border: 1px solid #60a5fa; /* Tailwind blue-400 */
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .digital-clock-frame .clock-on {
+        /* Digital look */
+        font-family: 'Digital-7', monospace; /* Requires a digital-style font to be loaded */
+        font-size: 1.25rem; /* text-xl */
+        font-weight: bold;
+        color: #1e3a8a; /* Tailwind blue-900 */
+        letter-spacing: 1px;
+    }
+    
+    /* Style for the OFF state */
+    .digital-clock-frame .clock-off {
+        color: transparent; /* Makes the text invisible */
+        text-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Subtle shadow keeps the frame from looking empty */
+    }
+
+    .clock-toggle-button {
+        padding: 4px 8px;
+        background-color: #60a5fa; /* Tailwind blue-400 */
+        color: white;
+        font-size: 0.75rem; /* text-xs */
+        font-weight: 600;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .clock-toggle-button:hover {
+        background-color: #3b82f6; /* Tailwind blue-500 */
+    }
+}
+/* Update the clock module to reserve fixed space for the entire unit */
+@layer components {
+    .clock-module {
+        /* Set a fixed, conservative width for the entire clock + button container */
+        width: 120px; 
+        flex-shrink: 0; /* Ensures it doesn't shrink when space is tight */
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .digital-clock-frame {
+        width: 75px; 
+        height: 38px;
+        line-height: 38px;
+        text-align: center;
+        background-color: #dbeafe;
+        border: 1px solid #60a5fa;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    /* New style for the icon button to give it a fixed size too */
+    .clock-toggle-button {
+        /* REMOVED: width: 30px; height: 30px; */
+        width: 40px; 
+        height: 24px; /* More rectangular switch shape */
+        padding: 0; 
+        background-color: transparent; /* Make the button background transparent */
+        color: #60a5fa; /* Use the blue colour for the icon itself */
+        font-size: 0.75rem; 
+        font-weight: 600;
+        border-radius: 4px; /* Slight rounding, not a circle */
+        border: none; /* Remove any border */
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s; /* Apply transition to all changes */
+    }
+
+    .clock-toggle-button:hover {
+        background-color: #e5e7eb; /* Light grey hover effect for feedback */
+    }
+
+    /* Ensure the icon fits well and is visible */
+    .clock-toggle-button i {
+        font-size: 1.2rem; /* Make the icon slightly larger for visibility */
+    }
+    /* Existing clock styles remain below */
+    /* ... */
+}
+
+@font-face {
+    font-family: 'DigitalClockFont'; /* <--- Custom name */
+    src: url('../fonts/digital-7.ttf') format('truetype'); 
+    /* Add other formats (.ttf, .woff) if you have them for better browser compatibility */
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* ... (rest of your CSS) ... */
+
+/* Apply the new font to the clock display element */
+@layer components {
+    /* ... (Existing styles for clock-module, clock-toggle-button) ... */
+
+    .digital-clock-frame .clock-on
+    {
+        /* CHANGED: Apply the new font family */
+        font-family: 'DigitalClockFont', monospace; 
+        font-size: 1.5rem; /* Slightly larger size */
+        font-weight: normal; 
+        color: #1e3a8a;
+        letter-spacing: 2px; /* Increased spacing for digital effect */
+    }
+    .digital-clock-frame .clock-off 
+    {
+        color: transparent; 
+        
+        /* Optional: Add a subtle ghost effect to suggest digits are still present */
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* ... (rest of the clock styles) ... */
+}

@@ -1,0 +1,28 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <!-- Define a more realistic tooth shape (flat bottom, roots on top) -->
+    <path id="tooth" d="M25,40 
+                        C30,40 35,35 35,30 
+                        C35,20 40,10 30,5 
+                        C20,0 15,10 15,10 
+                        C15,10 10,0 0,5 
+                        C-10,10 -5,20 -5,30 
+                        C-5,35 0,40 5,40 
+                        Z" 
+          fill="none" stroke="#ffeeff" stroke-width="1.2" transform="translate(20, 20)"/>
+  </defs>
+
+  <!-- Set the background rectangle -->
+  <rect width="100%" height="100%" fill="#4bc35b"/>
+
+  <!-- Randomly placed and rotated teeth -->
+  <use xlink:href="#tooth" x="50" y="60" opacity="0.22" transform="rotate(5, 50, 60)"/>
+  <use xlink:href="#tooth" x="280" y="90" opacity="0.22" transform="rotate(-12, 280, 90)"/>
+  <use xlink:href="#tooth" x="120" y="150" opacity="0.22" transform="rotate(18, 120, 150)"/>
+  <use xlink:href="#tooth" x="320" y="200" opacity="0.22" transform="rotate(-8, 320, 200)"/>
+  <use xlink:href="#tooth" x="180" y="250" opacity="0.22" transform="rotate(25, 180, 250)"/>
+  <use xlink:href="#tooth" x="70" y="300" opacity="0.22" transform="rotate(-15, 70, 300)"/>
+  <use xlink:href="#tooth" x="250" y="330" opacity="0.22" transform="rotate(10, 250, 330)"/>
+  <use xlink:href="#tooth" x="140" y="50" opacity="0.22" transform="rotate(-20, 140, 50)"/>
+  <use xlink:href="#tooth" x="300" y="140" opacity="0.22" transform="rotate(15, 300, 140)"/>
+</svg>
