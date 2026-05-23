@@ -178,23 +178,37 @@
             Dashboard
         </a>
         
-        {{-- Search / Listing Link --}}
-        <a href="{{ route('patients.index') }}" 
-        class="nav-link {{ (Route::is('patients.index') || Route::is('patients.show')) ? 'nav-link-active' : '' }}">
-            Search / Listing
-        </a>
-        
-        {{-- New Patient Link --}}
-        <a href="{{ route('patients.register') }}" 
+        {{-- Search / Listing Link — nurse gets their own route --}}
+        @if(Auth::user()->is_nurse)
+            <a href="{{ route('nurse.patients.index') }}"
+            class="nav-link {{ Route::is('nurse.patients.*') ? 'nav-link-active' : '' }}">
+                Search / Listing
+            </a>
+        @else
+            <a href="{{ route('patients.index') }}"
+            class="nav-link {{ (Route::is('patients.index') || Route::is('patients.show')) ? 'nav-link-active' : '' }}">
+                Search / Listing
+            </a>
+        @endif
+
+        {{-- New Patient Link — shared --}}
+        <a href="{{ route('patients.register') }}"
         class="nav-link {{ (Route::is('patients.register') || Route::is('patients.create')) ? 'nav-link-active' : '' }}">
             New Patient
         </a>
-        
-        {{-- Reports Link --}}
-        <a href="{{ route('reports.index') }}" 
-        class="nav-link {{ Route::is('reports.index') ? 'nav-link-active' : '' }}">
-            Reports
-        </a>
+
+        {{-- Reports Link — nurses get their own placeholder page --}}
+        @if(Auth::user()->is_nurse)
+            <a href="{{ route('nurse.reports') }}"
+            class="nav-link {{ Route::is('nurse.reports') ? 'nav-link-active' : '' }}">
+                Reports
+            </a>
+        @else
+            <a href="{{ route('reports.index') }}"
+            class="nav-link {{ Route::is('reports.index') ? 'nav-link-active' : '' }}">
+                Reports
+            </a>
+        @endif
     </nav>
     {{-- 3. THE NEW DIGITAL WATCH MODULE --}}
     <div class="clock-module flex items-center space-x-3">

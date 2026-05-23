@@ -164,10 +164,9 @@
                                     $isClinical = !$isEstimate || $isFree;
 
                                     if ($showAllRecords || $isClinical) {
-                                        $hasExtraNotes = !empty($record->estimate_description) || !empty($record->notes) || !empty($record->remarks);
+                                        $hasExtraNotes = !empty($record->estimate_description) || !empty($record->remarks);
                                         $tooltipParts = [];
                                         if ($hasExtraNotes) {
-                                            if (!empty($record->notes)) $tooltipParts[] = $record->notes;
                                             if (!empty($record->remarks)) $tooltipParts[] = $record->remarks;
                                         }
                                         $tooltipContent = implode('<br>', $tooltipParts);
@@ -244,7 +243,7 @@
             }
         }
     </script>
-    <form id="access-form" method="POST" action="{{ route('patients.all_records', ['patient_id' => $patient->patient_id]) }}" style="display:none;">
+    <form id="access-form" method="POST" action="{{ route('patients.partner.all_records', ['patient_id' => $patient->patient_id]) }}" style="display:none;">
         @csrf
         <input type="hidden" name="access_key" id="access-key-input">
     </form>

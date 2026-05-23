@@ -10,6 +10,7 @@ class DecryptExistingData extends Command
 {
     protected $signature = 'decrypt:existing
                             {--connection= : Database connection to use (default: DB_CONNECTION)}
+                            {--database=   : Override the database name on the connection (bypasses cached config)}
                             {--force        : Skip confirmation prompt}';
 
     protected $description = 'Reverse encryption on patients, patients_clinical, and insurance tables (rollback tool).';
@@ -48,8 +49,13 @@ class DecryptExistingData extends Command
             }
         }
 
+        if ($dbName = $this->option('database')) {
+            config(["database.connections.{$connection}.database" => $dbName]);
+            DB::purge($connection);
+        }
+
         $db = DB::connection($connection);
-        $this->info("Using connection: {$connection}");
+        $this->info("Using connection: {$connection}" . ($dbName ?? false ? " (database: {$dbName})" : ''));
         $this->newLine();
 
         $this->decryptTable($db, 'patients',          'patient_id',        self::PATIENT_FIELDS);

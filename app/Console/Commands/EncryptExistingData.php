@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\DB;
 class EncryptExistingData extends Command
 {
     protected $signature = 'encrypt:existing
-                            {--connection= : Database connection to use (default: DB_CONNECTION)}';
+                            {--connection= : Database connection to use (default: DB_CONNECTION)}
+                            {--database=   : Override the database name on the connection (bypasses cached config)}';
 
     protected $description = 'Encrypt all existing plaintext values in patients, patients_clinical, and insurance tables.';
 
@@ -36,9 +37,15 @@ class EncryptExistingData extends Command
     public function handle(): int
     {
         $connection = $this->option('connection') ?: config('database.default');
+
+        if ($dbName = $this->option('database')) {
+            config(["database.connections.{$connection}.database" => $dbName]);
+            DB::purge($connection);
+        }
+
         $db = DB::connection($connection);
 
-        $this->info("Using connection: {$connection}");
+        $this->info("Using connection: {$connection}" . ($dbName ?? false ? " (database: {$dbName})" : ''));
         $this->newLine();
 
         $this->encryptTable($db, 'patients',          'patient_id',        self::PATIENT_FIELDS);

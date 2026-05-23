@@ -90,8 +90,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mt-6">
-                <div class="form-group"><label>Notes:</label><textarea name="notes" rows="2" class="form-control"></textarea></div>
+            <div class="mt-6">
                 <div class="form-group"><label>Remarks:</label><textarea name="remarks" rows="2" class="form-control"></textarea></div>
             </div>
             

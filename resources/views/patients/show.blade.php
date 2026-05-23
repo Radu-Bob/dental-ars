@@ -178,10 +178,9 @@
                                     $isClinical = !$isEstimate || $isFree;
 
                                     if ($showAllRecords || $isClinical) {
-                                        $hasExtraNotes = !empty($record->estimate_description) || !empty($record->notes) || !empty($record->remarks);
+                                        $hasExtraNotes = !empty($record->estimate_description) || !empty($record->remarks);
                                         $tooltipParts = [];
                                         if ($hasExtraNotes) {
-                                            if (!empty($record->notes)) $tooltipParts[] = $record->notes;
                                             if (!empty($record->remarks)) $tooltipParts[] = $record->remarks;
                                         }
                                         $tooltipContent = implode('<br>', $tooltipParts);

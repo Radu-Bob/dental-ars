@@ -5,6 +5,7 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\NurseController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\UserController;
 
@@ -26,22 +27,34 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
 // ===================================
-// 2. AUTHENTICATED GROUP (MAIN APPLICATION)
+// 2. NURSE ROUTE GROUP
+// ===================================
+Route::middleware(['auth', 'role:nurse'])->prefix('nurse')->name('nurse.')->group(function () {
+    Route::get('/reports',                 [NurseController::class, 'reports'])->name('reports');
+    Route::get('/patients',                [NurseController::class, 'index'])->name('patients.index');
+    Route::get('/patients/{patient_id}',   [NurseController::class, 'show'])->name('patients.show');
+    Route::get('/patients/{patient}/edit', [NurseController::class, 'edit'])->name('patients.edit');
+    Route::put('/patients/{patient}',      [NurseController::class, 'update'])->name('patients.update');
+});
+
+
+// ===================================
+// 3. AUTHENTICATED GROUP (MAIN APPLICATION)
 // ===================================
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', [PatientController::class, 'dashboard'])->name('dashboard');
-    
+
     // --- HIGHLY SPECIFIC STATIC PATIENT ROUTES (MUST be first) ---
     Route::get('/patients/search', [SearchController::class, 'search'])->name('patients.search');
     Route::get('/patients/register', [PatientController::class, 'register'])->name('patients.register');
     Route::post('/patients/register', [PatientController::class, 'saveNewPatient'])->name('patients.saveNewPatient');
-    Route::get('/patients/create/{patient_id}', [PatientController::class, 'create'])->name('patients.create');
+    Route::get('/patients/create/{patient_id}', [PatientController::class, 'create'])->name('patients.create')->middleware('role:admin,doctor');
 
     // --- INDEX ROUTES ---
     Route::get('/patients', [PatientController::class, 'index'])->name('patients.index');
-    Route::get('/reports', [PatientController::class, 'reportsIndex'])->name('reports.index');
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/reports', [PatientController::class, 'reportsIndex'])->name('reports.index')->middleware('role:admin,doctor');
+    Route::get('/users', [UserController::class, 'index'])->name('users.index')->middleware('role:admin,doctor');
 
 
     // --- USER PROFILE ROUTES ---
@@ -51,8 +64,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/password', [AuthController::class, 'updatePassword'])->name('profile.password.update');
     
     // Admin edits another user's profile (wildcard route - kept specific for clarity)
-    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::post('/users/{user}/update', [UserController::class, 'update'])->name('users.update');
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit')->middleware('role:admin,doctor');
+    Route::post('/users/{user}/update', [UserController::class, 'update'])->name('users.update')->middleware('role:admin,doctor');
 
 
     // --- PATIENT WILDCARD ROUTES (MOST GENERIC, MUST BE LAST) ---
@@ -63,24 +76,24 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/patient/{patient}', [PatientController::class, 'updatePatient'])->name('patient.update'); 
     
     // Route for adding records to an existing patient
-    Route::post('/patients/{patient_id}', [PatientController::class, 'store'])->name('patients.store');
-    
+    Route::post('/patients/{patient_id}', [PatientController::class, 'store'])->name('patients.store')->middleware('role:admin,doctor');
+
     // Route for showing all records for a patient
-    Route::post('/patients/{patient_id}/all-records', [App\Http\Controllers\PatientController::class, 'showAllRecords'])->name('patients.all_records');
+    Route::post('/patients/{patient_id}/all-records', [App\Http\Controllers\PatientController::class, 'showAllRecords'])->name('patients.all_records')->middleware('role:admin,doctor');
     
     // The show/detail route (e.g., /patients/123 - MUST be the absolute last)
     Route::get('/patients/{patient_id}', [PatientController::class, 'show'])->name('patients.show');
 
     // 1. Route for displaying the specific record edit form (records.edit)
-    Route::get('/records/{record}/edit', [PatientController::class, 'edit'])->name('records.edit');
+    Route::get('/records/{record}/edit', [PatientController::class, 'edit'])->name('records.edit')->middleware('role:admin,doctor');
 
     // CORRECTED UPDATE ROUTE: Calls the existing 'update' method.
-    Route::put('/records/{record}', [PatientController::class, 'updateRecord'])->name('records.update');
+    Route::put('/records/{record}', [PatientController::class, 'updateRecord'])->name('records.update')->middleware('role:admin,doctor');
 
     // --- Insurance Routes ---
     // {patient} placeholder uses Route Model Binding to fetch the Patient by patient_id
-    Route::get('/patients/{patient}/insurance/edit', [PatientController::class, 'editInsurance'])->name('insurance.edit');
-    Route::put('/patients/{patient}/insurance', [PatientController::class, 'updateInsurance'])->name('insurance.update');
+    Route::get('/patients/{patient}/insurance/edit', [PatientController::class, 'editInsurance'])->name('insurance.edit')->middleware('role:admin,doctor');
+    Route::put('/patients/{patient}/insurance', [PatientController::class, 'updateInsurance'])->name('insurance.update')->middleware('role:admin,doctor');
 
      // NEW REPORTING ROUTES
     //Route::get('/reports', [PatientController::class, 'reportsIndex'])->name('reports.index');
@@ -93,7 +106,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     // Group all report routes under the 'reports' URI prefix and the 'reports.' name prefix
-    Route::name('reports.')->prefix('reports')->group(function () {
+    Route::middleware('role:admin,doctor')->name('reports.')->prefix('reports')->group(function () {
         
         // 1. Reports Dashboard Index (URL: /reports | Name: reports.index)
         Route::get('/', [ReportController::class, 'index'])->name('index');
@@ -135,7 +148,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     // --- Partner Clinic Connection Routes ---
-    Route::group(['prefix' => 'patients/partner', 'as' => 'patients.partner.'], function () {
+    Route::group(['prefix' => 'patients/partner', 'as' => 'patients.partner.', 'middleware' => 'role:admin,doctor'], function () {
         // The main landing page for partner search
         Route::get('search', [PatientController::class, 'partnerSearch'])->name('search');
 
@@ -153,6 +166,9 @@ Route::middleware(['auth'])->group(function () {
 
         // Force-import despite similar patient — flagged in audit log
         Route::post('import/{patient_id}/force', [PatientController::class, 'importForce'])->name('import.force');
+
+        // All records (incl. estimates) for a partner patient — key-gated
+        Route::post('all-records/{patient_id}', [PatientController::class, 'partnerShowAllRecords'])->name('all_records');
     });
 
 });

@@ -67,6 +67,11 @@ class User extends Authenticatable
     {
         // Replace 'role' with whatever column you use to identify a doctor
         // so th eexport button is visible in the doctor reports
-        return $this->role === 'doctor'; 
+        return $this->role === 'doctor';
+    }
+
+    public function getIsNurseAttribute(): bool
+    {
+        return $this->role === 'nurse';
     }
 }

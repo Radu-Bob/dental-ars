@@ -14,19 +14,21 @@ class AuditLog extends Model
         'user_id',
         'user_name',
         'action',
+        'action_category',
         'model_type',
         'model_id',
         'before',
         'after',
         'ip_address',
         'user_agent',
+        'context',
         'is_flagged',
         'flag_reason',
     ];
 
     protected $casts = [
-        'before'     => 'array',
-        'after'      => 'array',
+        'before'     => 'encrypted:array',
+        'after'      => 'encrypted:array',
         'is_flagged' => 'boolean',
     ];
 }

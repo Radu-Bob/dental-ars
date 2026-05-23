@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\PatientClinical;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Patient;
 
@@ -25,11 +26,13 @@ class SearchController extends Controller
             $patient = Patient::where('patient_id', $patientId)->first();
 
             if ($patient) {
-                // If the patient exists, redirect to the show page with the correct ID.
+                if (Auth::user()->is_nurse) {
+                    return redirect()->route('nurse.patients.show', ['patient_id' => $patientId]);
+                }
                 return redirect()->route('patients.show', ['patient_id' => $patientId]);
             } else {
-                // If the patient does not exist, you can return an error message to the index view.
-                return redirect()->route('patients.index')->with('error', 'Patient not found.');
+                $indexRoute = Auth::user()->is_nurse ? 'nurse.patients.index' : 'patients.index';
+                return redirect()->route($indexRoute)->with('error', 'Patient not found.');
             }
         }
 

@@ -27,6 +27,11 @@ class PatientController extends Controller
      */
     public function index(Request $request)
     {
+        // Nurses have a dedicated view — redirect them
+        if (Auth::user()->is_nurse) {
+            return redirect()->route('nurse.patients.index', $request->all());
+        }
+
         // First, check if the search query looks like a patient ID (a number)
         if ($request->has('q') && is_numeric($request->input('q'))) {
             return redirect()->route('patients.show', ['patient_id' => $request->input('q')]);
@@ -100,6 +105,11 @@ class PatientController extends Controller
 
     public function show(Request $request, $patient_id)
     {
+        // Nurses have a dedicated clinical-free view — redirect them
+        if (Auth::user()->is_nurse) {
+            return redirect()->route('nurse.patients.show', ['patient_id' => $patient_id]);
+        }
+
         $patient = Patient::where('patient_id', $patient_id)->first();
 
         if (!$patient) {
@@ -247,7 +257,6 @@ class PatientController extends Controller
             'estimate_cost' => $request->estimate_cost ?? '',
             'estimate_paid' => $request->estimate_paid ?? '',
             'estimate_balance' => $request->estimate_balance ?? '',
-            'notes' => $request->notes ?? '',
             'remarks' => $request->remarks ?? '',
             'time_stamp' => Carbon::now(),
             'is_insurance_claim'    => $isInsuranceClaim,
@@ -341,6 +350,12 @@ class PatientController extends Controller
                 }
 
                 DB::commit();
+
+                // Redirect nurse to their dedicated view
+                if (Auth::user()->is_nurse) {
+                    return redirect()->route('nurse.patients.show', ['patient_id' => $patient->patient_id])
+                                    ->with('success', $successMessage);
+                }
 
                 // 3. Redirect
                 return redirect()->route('patients.show', ['patient_id' => $patient->patient_id])
@@ -530,19 +545,18 @@ class PatientController extends Controller
 
     public function partnerResults(Request $request)
     {
-        $q = $request->input('q'); 
+        $q = $request->input('q');
 
-        // Initialize the query on the partner connection
-        $query = DB::connection('partner')->table('patients');
-
-        if (!empty($q)) {
-            if (is_numeric($q)) {
-                $query->where('patient_id', $q);
-            } else {
-                $query->where('name', 'LIKE', '%' . $q . '%');
-            }
-        } else {
+        if (empty($q)) {
             return view('patients.partner_results', ['remotePatients' => collect([])]);
+        }
+
+        $query = Patient::on('partner');
+
+        if (is_numeric($q)) {
+            $query->where('patient_id', $q);
+        } else {
+            $query->where('name', 'LIKE', '%' . $q . '%');
         }
 
         $remotePatients = $query->get();
@@ -573,6 +587,37 @@ class PatientController extends Controller
             ->first();
 
         $showAllRecords = ($request->query('showAllRecords') === 'true');
+
+        return view('patients.show_partner', compact('patient', 'allRecords', 'insuranceProvider', 'showAllRecords'));
+    }
+
+    public function partnerShowAllRecords(Request $request, $patient_id)
+    {
+        $accessKey = $request->input('access_key');
+        $secureKey = config('app.all_records_key');
+
+        if ($accessKey !== $secureKey) {
+            return redirect()->route('patients.partner.show', ['patient_id' => $patient_id])
+                             ->with('error', 'Incorrect key. Access denied.');
+        }
+
+        $patient = Patient::on('partner')->where('patient_id', $patient_id)->first();
+
+        if (!$patient) {
+            return redirect()->route('patients.partner.search')
+                             ->with('error', 'Patient not found in partner clinic.');
+        }
+
+        $allRecords = PatientClinical::on('partner')
+            ->where('patient_id', $patient_id)
+            ->orderBy('date', 'desc')
+            ->get();
+
+        $insuranceProvider = Insurance::on('partner')
+            ->where('ver_patient_id', $patient_id)
+            ->first();
+
+        $showAllRecords = true;
 
         return view('patients.show_partner', compact('patient', 'allRecords', 'insuranceProvider', 'showAllRecords'));
     }

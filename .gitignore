@@ -26,3 +26,4 @@ Thumbs.db
 * (copy).php
 copy_*.env
 .env.*
+log/

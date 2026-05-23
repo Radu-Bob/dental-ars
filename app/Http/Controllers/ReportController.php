@@ -242,6 +242,18 @@ class ReportController extends Controller
             fclose($file);
         };
 
+        AuditLog::create([
+            'user_id'         => Auth::id(),
+            'user_name'       => Auth::user()?->name,
+            'action'          => 'exported',
+            'action_category' => 'export',
+            'model_type'      => 'InsuranceReport',
+            'model_id'        => '0',
+            'ip_address'      => request()->ip(),
+            'user_agent'      => request()->userAgent(),
+            'context'         => 'Insurance CSV export, ' . $patients->count() . ' rows',
+        ]);
+
         // Use the global response helper to stream the file download
         return response()->stream($callback, 200, $headers);
     }
@@ -315,6 +327,18 @@ class ReportController extends Controller
             $data['report_type']   ?? '',
             $data['patient_name']  ?? ''
         );
+
+        AuditLog::create([
+            'user_id'         => Auth::id(),
+            'user_name'       => Auth::user()?->name,
+            'action'          => 'printed',
+            'action_category' => 'print',
+            'model_type'      => 'TreatmentReport',
+            'model_id'        => $data['report_number'] ?? '0',
+            'ip_address'      => request()->ip(),
+            'user_agent'      => request()->userAgent(),
+            'context'         => 'Treatment report print: ' . ($data['report_type'] ?? 'N/A') . ' — Patient: ' . ($data['patient_name'] ?? 'N/A') . ', #' . ($data['report_number'] ?? 'N/A'),
+        ]);
 
         return view('reports::treatment_report_print', compact('data'));
     }

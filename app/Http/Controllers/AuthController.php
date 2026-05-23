@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\AuditLog;
 
 class AuthController extends Controller
 {
@@ -24,7 +25,20 @@ class AuthController extends Controller
 
     if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
-        return redirect()->route('dashboard'); // <-- Change this line
+
+        AuditLog::create([
+            'user_id'         => Auth::id(),
+            'user_name'       => Auth::user()->name,
+            'action'          => 'login',
+            'action_category' => 'auth',
+            'model_type'      => 'User',
+            'model_id'        => (string) Auth::id(),
+            'ip_address'      => $request->ip(),
+            'user_agent'      => $request->userAgent(),
+            'context'         => 'Login: ' . Auth::user()->name . ' (' . Auth::user()->email . ') from ' . $request->ip(),
+        ]);
+
+        return redirect()->route('dashboard');
     }
 
     return back()->withErrors([
@@ -34,6 +48,18 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        AuditLog::create([
+            'user_id'         => Auth::id(),
+            'user_name'       => Auth::user()?->name,
+            'action'          => 'logout',
+            'action_category' => 'auth',
+            'model_type'      => 'User',
+            'model_id'        => (string) Auth::id(),
+            'ip_address'      => $request->ip(),
+            'user_agent'      => $request->userAgent(),
+            'context'         => 'Logout: ' . Auth::user()?->name,
+        ]);
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

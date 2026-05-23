@@ -64,17 +64,32 @@
         @foreach ($logs as $entry)
             @php
                 $actionColor = match($entry->action) {
-                    'created' => ['bg' => 'bg-green-100', 'text' => 'text-green-700', 'border' => 'border-green-300'],
-                    'updated' => ['bg' => 'bg-blue-100',  'text' => 'text-blue-700',  'border' => 'border-blue-300'],
-                    'deleted' => ['bg' => 'bg-red-100',   'text' => 'text-red-700',   'border' => 'border-red-300'],
-                    default   => ['bg' => 'bg-gray-100',  'text' => 'text-gray-700',  'border' => 'border-gray-300'],
+                    'created'  => ['bg' => 'bg-green-100',  'text' => 'text-green-700',  'border' => 'border-green-300'],
+                    'updated'  => ['bg' => 'bg-blue-100',   'text' => 'text-blue-700',   'border' => 'border-blue-300'],
+                    'deleted'  => ['bg' => 'bg-red-100',    'text' => 'text-red-700',    'border' => 'border-red-300'],
+                    'exported' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'border' => 'border-purple-300'],
+                    'printed'  => ['bg' => 'bg-indigo-100', 'text' => 'text-indigo-700', 'border' => 'border-indigo-300'],
+                    'login'    => ['bg' => 'bg-teal-100',   'text' => 'text-teal-700',   'border' => 'border-teal-300'],
+                    'logout'   => ['bg' => 'bg-gray-100',   'text' => 'text-gray-600',   'border' => 'border-gray-300'],
+                    default    => ['bg' => 'bg-gray-100',   'text' => 'text-gray-700',   'border' => 'border-gray-300'],
                 };
 
                 $modelLabel = match($entry->model_type) {
-                    'Patient'         => 'Patient',
-                    'PatientClinical' => 'Clinical Record',
-                    'Insurance'       => 'Insurance',
-                    default           => $entry->model_type,
+                    'Patient'          => 'Patient',
+                    'PatientClinical'  => 'Clinical Record',
+                    'Insurance'        => 'Insurance',
+                    'InsuranceReport'  => 'Insurance Report',
+                    'TreatmentReport'  => 'Treatment Report',
+                    'User'             => 'User',
+                    default            => $entry->model_type,
+                };
+
+                $categoryBadge = match($entry->action_category) {
+                    'export'      => ['bg' => 'bg-purple-50', 'text' => 'text-purple-600', 'label' => 'EXPORT'],
+                    'print'       => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600', 'label' => 'PRINT'],
+                    'auth'        => ['bg' => 'bg-teal-50',   'text' => 'text-teal-600',   'label' => 'AUTH'],
+                    'data_change' => ['bg' => 'bg-blue-50',   'text' => 'text-blue-600',   'label' => 'DATA'],
+                    default       => null,
                 };
             @endphp
 
@@ -82,6 +97,14 @@
 
                 {{-- Header row: badge | who | what | when | where --}}
                 <div class="flex flex-wrap items-center gap-3 mb-3">
+
+                    {{-- Category badge (export/print/auth) --}}
+                    @if($categoryBadge)
+                        <span class="inline-block text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded border
+                                     {{ $categoryBadge['bg'] }} {{ $categoryBadge['text'] }} border-current">
+                            {{ $categoryBadge['label'] }}
+                        </span>
+                    @endif
 
                     {{-- Action badge --}}
                     <span class="inline-block text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded border
@@ -183,6 +206,13 @@
                                 </span>
                             </div>
                         @endforeach
+                    </div>
+                @endif
+
+                {{-- Context (for export/print/auth entries) --}}
+                @if($entry->context)
+                    <div class="mt-2 text-xs text-gray-600 italic bg-gray-50 px-3 py-1.5 rounded">
+                        {{ $entry->context }}
                     </div>
                 @endif
 
