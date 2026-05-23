@@ -19,64 +19,8 @@ class ReportController extends Controller
      */
     public function index()
     {
-        // Define ALL the reports available for the dashboard HERE
-        $reports = [
-            [
-                'title'       => 'Treatment Report / Invoice',
-                'description' => 'Compose and print a treatment report, invoice, receipt, or pro-forma for any patient.',
-                'route'       => 'reports.treatment_report'
-            ],
-            [
-                'title' => 'Patients Attending',
-                'description' => 'A comprehensive list of active patients and their upcoming or recent attendance.',
-                'route' => 'reports.patients_attending'
-            ],
-/*
-            [
-                'title' => 'Insured Patients',
-                'description' => 'List of patients registered with a Health Insurance provider.',
-                'route' => 'reports.insurance_report'
-            ],
-        */
-            [
-                'title' => 'Payments Ledger',
-                'description' => 'Detailed financial ledger showing all transactions, payments, and account balances.',
-                'route' => 'reports.payments_ledger'
-            ],
-            [
-                'title' => 'Estimate Report',
-                'description' => 'An overview of outstanding, accepted, and rejected treatment estimates.',
-                'route' => 'reports.estimate_report'
-            ],
-            [
-                'title' => 'Patients with Active Insurance',
-                'description' => 'Lists all patients who have an insurance record, sorted by the date of their most recent clinical record.',
-                'route' => 'reports.insurance',
-            ],
-            [
-                'title' => 'Patient Demographics',
-                'description' => 'Full summary of patient demographic data, including insurance and contact details.',
-                'route' => 'reports.patients_demographics'
-            ],
-            [
-                'title' => 'Clinical Procedures Summary',
-                'description' => 'Statistical summary of common clinical procedures performed this quarter.',
-                'route' => 'reports.clinical_summary'
-            ],
-            [
-                'title' => 'System Audit Log',
-                'description' => 'Tamper-evident record of every create, update, and delete action performed on patient data.',
-                'route' => 'reports.system_audit'
-            ],
-            [
-                'title' => 'Import Red Flags',
-                'description' => 'All partner-import events where the user confirmed import despite a similar existing patient record.',
-                'route' => 'reports.audit_flags'
-            ],
-        ];
-        
-        // *** THE CRITICAL FIX: REVERTING TO YOUR ACTUAL VIEW PATH ***
-        return view('reports::index', compact('reports')); 
+        $reports = config('reports');
+        return view('reports::index', compact('reports'));
     }
     
     /**
@@ -85,7 +29,6 @@ class ReportController extends Controller
      */
     public function patientsAttending()
     {
-        $reports = $this->getReportLinks(); // we'll define this helper
         // Logic to fetch and process attendance data
         return view('reports::patients_attending');
     }
@@ -96,7 +39,6 @@ class ReportController extends Controller
      */
     public function paymentsLedger()
     {
-        $reports = $this->getReportLinks(); // we'll define this helper
         // Logic to fetch and process payment data
         return view('reports::payments_ledger');
     }
@@ -107,7 +49,6 @@ class ReportController extends Controller
      */
     public function estimateReport()
     {
-        $reports = $this->getReportLinks(); // we'll define this helper
         // Logic to fetch and process estimate data
         return view('reports::estimate_ledger');
     }
@@ -118,7 +59,6 @@ class ReportController extends Controller
      */
     public function patientReport()
     {
-        $reports = $this->getReportLinks(); // we'll define this helper
         // Logic to fetch and process patient demographic data
         return view('reports::patients_demographics');
     }
@@ -129,7 +69,6 @@ class ReportController extends Controller
      */
     public function clinicalSummary()
     {
-        $reports = $this->getReportLinks(); // we'll define this helper
         // Logic to fetch and process clinical procedure data
         return view('reports::clinical_summary');
     }
@@ -142,7 +81,6 @@ class ReportController extends Controller
      */
     public function insuranceReport()
     {
-        $reports = $this->getReportLinks(); // we'll define this helper
         $patients = Patient::select([
             'patients.patient_id',
             'patients.name',
@@ -303,12 +241,11 @@ class ReportController extends Controller
      */
     public function treatmentReport()
     {
-        $reports        = $this->getReportLinks();
         $reportNumber   = $this->nextReportNumber();
         $bankOptions    = $this->parseMarkdownSections(storage_path('app/reports/bank_details.md'));
         $signatureOptions = $this->parseMarkdownSections(storage_path('app/reports/signatures.md'));
 
-        return view('reports::treatment_report', compact('reports', 'reportNumber', 'bankOptions', 'signatureOptions'));
+        return view('reports::treatment_report', compact('reportNumber', 'bankOptions', 'signatureOptions'));
     }
 
     /**
@@ -515,51 +452,4 @@ class ReportController extends Controller
         );
     }
 
-    /**
-     * Returns the consistent list of reports for navigation.
-     * Keep this list in sync with what you show on the dashboard.
-     *
-     * @return array
-     */
-    private function getReportLinks(): array
-    {
-        return [
-            [
-                'title' => 'Treatment Report / Invoice',
-                'route' => 'reports.treatment_report'
-            ],
-            [
-                'title' => 'Patients Attending',
-                'route' => 'reports.patients_attending'
-            ],
-            [
-                'title' => 'Payments Ledger',
-                'route' => 'reports.payments_ledger'
-            ],
-            [
-                'title' => 'Estimate Report',
-                'route' => 'reports.estimate_report'
-            ],
-            [
-                'title' => 'Patients with Active Insurance',
-                'route' => 'reports.insurance'
-            ],
-            [
-                'title' => 'Patient Demographics',
-                'route' => 'reports.patients_demographics'
-            ],
-            [
-                'title' => 'Clinical Procedures Summary',
-                'route' => 'reports.clinical_summary'
-            ],
-            [
-                'title' => 'System Audit Log',
-                'route' => 'reports.system_audit'
-            ],
-            [
-                'title' => 'Import Red Flags',
-                'route' => 'reports.audit_flags'
-            ],
-        ];
-    }
 }

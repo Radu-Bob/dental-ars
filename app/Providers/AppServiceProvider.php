@@ -29,27 +29,11 @@ class AppServiceProvider extends ServiceProvider
         // 2. Specific View Composers
         View::composer('patients.index', RecentPatientsComposer::class);
 
-        // ────────────────────────────────────────────────
-        // NEW: Share $reports array with ALL reports views
-        // ────────────────────────────────────────────────
+        // Share $reports with all report views — list is defined in config/reports.php
         View::composer([
-            'patients.reports.*',                     // main views
-            'patients.reports.partials.*',            // partials inside partials/
-        ], function ($view) {
-            $reports = [
-                ['title' => 'Patients Attending',      'route' => 'reports.patients_attending'],
-                ['title' => 'Payments Ledger',         'route' => 'reports.payments_ledger'],
-                ['title' => 'Estimate Report',         'route' => 'reports.estimate_report'],
-                ['title' => 'Patients with Active Insurance', 'route' => 'reports.insurance'],
-                ['title' => 'Patient Demographics',    'route' => 'reports.patients_demographics'],
-                ['title' => 'Clinical Procedures Summary', 'route' => 'reports.clinical_summary'],
-                ['title' => 'System Audit Log',            'route' => 'reports.system_audit'],
-                ['title' => 'Import Red Flags',            'route' => 'reports.audit_flags'],
-                // add others here
-            ];
-
-            $view->with('reports', $reports);
-        });
+            'patients.reports.*',
+            'patients.reports.partials.*',
+        ], fn ($view) => $view->with('reports', config('reports')));
 
         View::addNamespace('reports', resource_path('views/patients/reports'));
     }

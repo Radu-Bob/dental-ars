@@ -80,13 +80,12 @@
                     VIEWING PARTNER RECORD
                 </div>
 
-                {{-- The Import Button - Using a distinct color to show it's a special action --}}
-                <form action="{{ route('patients.partner.import', ['patient_id' => $patient->patient_id]) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 rounded-lg shadow-md transition duration-150">
-                        Import to This Clinic
-                    </button>
-                </form>
+                {{-- The Import Button - opens confirmation modal --}}
+                <button type="button"
+                        onclick="document.getElementById('importModal').classList.remove('hidden')"
+                        class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 rounded-lg shadow-md transition duration-150">
+                    Import to This Clinic
+                </button>
                 
                 <a href="{{ route('patients.partner.search') }}" class="w-full text-center block bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-300 transition duration-300">
                     Back to Partner Search
@@ -233,6 +232,90 @@
         @endif
     </div>
     
+    {{-- Import Confirmation Modal --}}
+    <div id="importModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 space-y-4">
+
+            <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Confirm Patient Import</h2>
+
+            <p class="text-sm text-gray-600">
+                You are about to create a <strong>new local patient record</strong> using the following data from the partner clinic. Clinical records will <strong>not</strong> be copied — demographics only.
+            </p>
+
+            <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Name</span>
+                    <span class="font-bold text-gray-900 uppercase">{{ $patient->name }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Partner ID</span>
+                    <span class="text-gray-700">#{{ $patient->patient_id }}</span>
+                </div>
+                @if (!empty($patient->tel))
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Tel</span>
+                    <span class="text-gray-700">{{ $patient->tel }}</span>
+                </div>
+                @endif
+                @if (!empty($patient->email))
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Email</span>
+                    <span class="text-gray-700 truncate ml-4">{{ $patient->email }}</span>
+                </div>
+                @endif
+                @if (!empty($patient->date_of_birth))
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Date of Birth</span>
+                    <span class="text-gray-700">{{ $patient->date_of_birth }}</span>
+                </div>
+                @endif
+                @if (!empty($patient->gender))
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Gender</span>
+                    <span class="text-gray-700">{{ $patient->gender }}</span>
+                </div>
+                @endif
+                @if (!empty($patient->location))
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Location</span>
+                    <span class="text-gray-700">{{ $patient->location }}</span>
+                </div>
+                @endif
+                @if (!empty($patient->remarks))
+                <div class="flex justify-between items-start gap-2">
+                    <span class="text-gray-500 shrink-0">Remarks</span>
+                    <span class="text-gray-700 text-right italic">{{ $patient->remarks }}</span>
+                </div>
+                @endif
+            </div>
+
+            @if ($insuranceProvider && !empty($insuranceProvider->insurance_no))
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 text-xs text-orange-700">
+                <strong>Insurance:</strong> {{ $insuranceProvider->insurance_provider ?? 'N/A' }} — Policy {{ $insuranceProvider->insurance_no }}
+            </div>
+            @endif
+
+            <div class="bg-amber-50 border border-amber-300 rounded-lg p-3 text-xs text-amber-800">
+                This import will be permanently recorded in the <strong>Audit Log</strong> with your name and timestamp.
+            </div>
+
+            <div class="flex gap-3 pt-1">
+                <button type="button"
+                        onclick="document.getElementById('importModal').classList.add('hidden')"
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg transition duration-150">
+                    Cancel
+                </button>
+                <form action="{{ route('patients.partner.import', ['patient_id' => $patient->patient_id]) }}" method="POST" class="flex-1">
+                    @csrf
+                    <button type="submit"
+                            class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 rounded-lg shadow-md transition duration-150">
+                        Confirm Import
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- Your existing script and form for access key --}}
     <script>
         function promptForAccessKey(patientId) {

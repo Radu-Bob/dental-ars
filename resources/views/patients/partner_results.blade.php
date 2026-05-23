@@ -34,28 +34,18 @@
             @foreach($remotePatients as $remotePatient)
                 <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4" 
                      style="border-color: {{ config('app.theme_color') == 'gray' ? '#4b5563' : config('app.theme_color') }};">
-                    <div class="p-6 flex justify-between items-center">
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-900 uppercase">
-                                <a href="{{ route('patients.partner.show', ['patient_id' => $remotePatient->patient_id]) }}" class="hover:underline text-blue-600">
-                                    {{ $remotePatient->name }}
-                                </a>
-                            </h3>
-                            <p class="text-sm text-gray-600">
-                                <strong>ID:</strong> {{ $remotePatient->patient_id }} | 
-                                <strong>Acc No:</strong> {{ $remotePatient->acc_no }} | 
-                                <strong>Tel:</strong> {{ $remotePatient->tel }}
-                            </p>
-                        </div>
-                        
-                        <form action="{{ route('patients.partner.import', ['patient_id' => $remotePatient->patient_id]) }}" method="POST">
-                            @csrf
-                            <button type="submit" 
-                                    class="px-4 py-2 text-white font-bold rounded-lg shadow hover:opacity-90 transition transform hover:scale-105"
-                                    style="background-color: {{ config('app.theme_color') == 'gray' ? '#4b5563' : config('app.theme_color') }};">
-                                Import Patient
-                            </button>
-                        </form>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-900 uppercase">
+                            <a href="{{ route('patients.partner.show', ['patient_id' => $remotePatient->patient_id]) }}" class="hover:underline text-blue-600">
+                                {{ $remotePatient->name }}
+                            </a>
+                        </h3>
+                        <p class="text-sm text-gray-600 mt-1">
+                            <strong>ID:</strong> {{ $remotePatient->patient_id }} |
+                            <strong>Acc No:</strong> {{ $remotePatient->acc_no }} |
+                            <strong>Tel:</strong> {{ $remotePatient->tel }}
+                        </p>
+                        <p class="text-xs text-gray-400 mt-2">Click the name to view full details before importing.</p>
                     </div>
                 </div>
             @endforeach
