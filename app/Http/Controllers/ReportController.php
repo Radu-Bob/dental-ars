@@ -237,7 +237,15 @@ class ReportController extends Controller
     // =========================================================================
 
     /**
-     * Display the Treatment Report / Invoice form.
+     * Landing page — lets the user choose between Invoice and Clinical Report.
+     */
+    public function treatmentReportIndex()
+    {
+        return view('reports::treatment_report_index');
+    }
+
+    /**
+     * Display the Invoice form.
      */
     public function treatmentReport()
     {
@@ -278,6 +286,49 @@ class ReportController extends Controller
         ]);
 
         return view('reports::treatment_report_print', compact('data'));
+    }
+
+    /**
+     * Display the Clinical Report / Prescription form.
+     */
+    public function clinicalReport()
+    {
+        $reportNumber     = $this->nextReportNumber();
+        $bankOptions      = $this->parseMarkdownSections(storage_path('app/reports/bank_details.md'));
+        $signatureOptions = $this->parseMarkdownSections(storage_path('app/reports/signatures.md'));
+
+        return view('reports::clinical_report', compact('reportNumber', 'bankOptions', 'signatureOptions'));
+    }
+
+    /**
+     * Render the Clinical Report print preview in a new tab.
+     */
+    public function clinicalReportPreview(Request $request)
+    {
+        $data = $request->only([
+            'report_number', 'report_date', 'report_type', 'patient_name',
+            'info_box', 'report_body', 'notes', 'bank_details', 'signature',
+        ]);
+
+        $this->logReportNumber(
+            $data['report_number'] ?? '',
+            $data['report_type']   ?? '',
+            $data['patient_name']  ?? ''
+        );
+
+        AuditLog::create([
+            'user_id'         => Auth::id(),
+            'user_name'       => Auth::user()?->name,
+            'action'          => 'printed',
+            'action_category' => 'print',
+            'model_type'      => 'ClinicalReport',
+            'model_id'        => $data['report_number'] ?? '0',
+            'ip_address'      => request()->ip(),
+            'user_agent'      => request()->userAgent(),
+            'context'         => 'Clinical report print: ' . ($data['report_type'] ?? 'N/A') . ' — Patient: ' . ($data['patient_name'] ?? 'N/A') . ', #' . ($data['report_number'] ?? 'N/A'),
+        ]);
+
+        return view('reports::clinical_report_print', compact('data'));
     }
 
     /**

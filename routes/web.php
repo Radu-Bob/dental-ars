@@ -135,9 +135,16 @@ Route::middleware(['auth'])->group(function () {
         // Red-Flag Import Log (admin only)
         Route::get('audit-flags', [ReportController::class, 'auditFlags'])->name('audit_flags');
 
-        // Treatment Report / Invoice form
-        Route::get('treatment-report', [ReportController::class, 'treatmentReport'])->name('treatment_report');
-        Route::post('treatment-report/preview', [ReportController::class, 'treatmentReportPreview'])->name('treatment_report.preview');
+        // Treatment Report / Invoice — landing page (choice between Invoice and Report)
+        Route::get('treatment-report', [ReportController::class, 'treatmentReportIndex'])->name('treatment_report');
+
+        // Invoice form
+        Route::get('invoice', [ReportController::class, 'treatmentReport'])->name('invoice');
+        Route::post('invoice/preview', [ReportController::class, 'treatmentReportPreview'])->name('invoice.preview');
+
+        // Clinical Report / Prescription form
+        Route::get('clinical-report', [ReportController::class, 'clinicalReport'])->name('clinical_report');
+        Route::post('clinical-report/preview', [ReportController::class, 'clinicalReportPreview'])->name('clinical_report.preview');
 
         // AJAX patient lookup (GET — no CSRF needed)
         Route::get('patient-search', [ReportController::class, 'patientSearch'])->name('patient_search');

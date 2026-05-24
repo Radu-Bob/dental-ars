@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Treatment Report / Invoice')
+@section('title', 'Clinical Report / Prescription')
 
 @section('left_content')
     @include('patients.reports.partials.reports-sidebar')
@@ -10,12 +10,16 @@
 
 <div class="p-6 bg-white rounded-xl shadow-lg">
 
-    <h1 class="text-2xl font-bold mb-1 text-gray-800">Treatment Report / Invoice</h1>
+    <div class="flex items-center gap-3 mb-1">
+        <a href="{{ route('reports.treatment_report') }}"
+           class="text-sm text-gray-400 hover:text-gray-600 transition">← Back</a>
+        <h1 class="text-2xl font-bold text-gray-800">Clinical Report / Prescription</h1>
+    </div>
     <p class="text-sm text-gray-500 mb-6">Fill in the form, then click <strong>Preview &amp; Print</strong> to open a clean printable version in a new tab.</p>
 
     <form id="report-form"
           method="POST"
-          action="{{ route('reports.invoice.preview') }}"
+          action="{{ route('reports.clinical_report.preview') }}"
           target="_blank">
         @csrf
 
@@ -48,9 +52,8 @@
                 <select name="report_type"
                         id="report_type"
                         class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-offset-1 shrink-0">
-                    <option value="Invoice for">Invoice for</option>
-                    <option value="Receipt for">Receipt for</option>
-                    <option value="Pro-forma invoice for">Pro-forma invoice for</option>
+                    <option value="Report for">Report for</option>
+                    <option value="Prescription for">Prescription for</option>
                 </select>
 
                 <div class="relative flex-1">
@@ -88,75 +91,17 @@
                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-offset-1"></textarea>
         </div>
 
-        {{-- ===== LINE ITEMS TABLE ===== --}}
-        <div class="mb-5 overflow-x-auto">
-            <table class="w-full border-collapse text-sm" id="items-table">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border border-gray-300 px-2 py-2 w-10 text-center text-gray-700">s/n</th>
-                        <th class="border border-gray-300 px-3 py-2 text-left text-gray-700">Description</th>
-                        <th class="border border-gray-300 px-2 py-2 w-20 text-center text-gray-700">Qty</th>
-                        <th class="border border-gray-300 px-2 py-2 w-32 text-right text-gray-700">Unit price</th>
-                        <th class="border border-gray-300 px-2 py-2 w-32 text-right text-gray-700">Total</th>
-                        <th class="border border-gray-300 px-2 py-2 w-8 text-center text-gray-400 text-xs">✕</th>
-                    </tr>
-                </thead>
-                <tbody id="items-body">
-                    @for ($i = 0; $i < 5; $i++)
-                    <tr>
-                        <td class="border border-gray-300 px-2 py-1 text-center text-gray-500 sn-cell">{{ $i + 1 }}</td>
-                        <td class="border border-gray-300 px-1 py-1">
-                            <input type="text" name="items[{{ $i }}][description]"
-                                   class="w-full px-2 py-1 text-sm focus:outline-none focus:bg-blue-50 rounded">
-                        </td>
-                        <td class="border border-gray-300 px-1 py-1">
-                            <input type="number" name="items[{{ $i }}][qty]"
-                                   class="w-full px-2 py-1 text-right text-sm focus:outline-none focus:bg-blue-50 rounded qty-input"
-                                   min="0" step="any">
-                        </td>
-                        <td class="border border-gray-300 px-1 py-1">
-                            <input type="number" name="items[{{ $i }}][unit_price]"
-                                   class="w-full px-2 py-1 text-right text-sm focus:outline-none focus:bg-blue-50 rounded price-input"
-                                   min="0" step="any">
-                        </td>
-                        <td class="border border-gray-300 px-1 py-1">
-                            <input type="number" name="items[{{ $i }}][total]"
-                                   class="w-full px-2 py-1 text-right text-sm bg-gray-50 focus:outline-none rounded total-input"
-                                   readonly tabindex="-1">
-                        </td>
-                        <td class="border border-gray-300 px-1 py-1 text-center">
-                            <button type="button" class="remove-row text-gray-300 hover:text-red-500 text-xs leading-none" title="Remove row">✕</button>
-                        </td>
-                    </tr>
-                    @endfor
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="2" class="border border-gray-300 px-2 py-2">
-                            <button type="button" id="add-row" class="btn-clinic-standard text-xs px-3 py-1 rounded">+ Add row</button>
-                        </td>
-                        <td colspan="2" class="border border-gray-300 px-3 py-2 text-right font-bold text-gray-800">
-                            GRAND TOTAL
-                        </td>
-                        <td class="border border-gray-300 px-2 py-2 text-right font-bold text-gray-900" id="grand-total-display">
-                            0.00
-                        </td>
-                        <td class="border border-gray-300 px-1 py-1">
-                            <select name="currency" id="currency"
-                                    class="w-full text-xs border-0 bg-transparent focus:outline-none cursor-pointer">
-                                <option value="TZS">TZS</option>
-                                <option value="USD">USD</option>
-                                <option value="EUR">EUR</option>
-                            </select>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
+        {{-- ===== REPORT BODY ===== --}}
+        <div class="mb-5">
+            <label for="report_body" class="block text-sm font-medium text-gray-700 mb-1">Report / Prescription body</label>
+            <textarea id="report_body"
+                      name="report_body"
+                      rows="12"
+                      placeholder="Enter the report findings, treatment plan, or prescription details…"
+                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono resize-y focus:outline-none focus:ring-2 focus:ring-offset-1"></textarea>
         </div>
 
-        <input type="hidden" name="grand_total" id="grand-total-value" value="0">
-
-        {{-- ===== BOTTOM: NOTES (left) | BANK DETAILS (right) ===== --}}
+        {{-- ===== BOTTOM: BANK DETAILS (right) ===== --}}
         <div class="grid grid-cols-2 gap-4 mb-3">
 
             <div>
@@ -182,7 +127,7 @@
 
         </div>
 
-        {{-- ===== SIGNATURE — narrow, 2 rows, under Notes ===== --}}
+        {{-- ===== SIGNATURE — narrow, 2 rows ===== --}}
         <div class="w-1/2 mb-6">
             <div class="flex justify-between items-center mb-1">
                 <label for="signature" class="text-sm font-medium text-gray-700">Signature block</label>
@@ -258,8 +203,6 @@
 
 {{-- ================================================================
      PATIENT INFO MODAL
-     Light gray bg · border · rounded · shadow
-     Checkboxes → Close copies selected lines to Info box
 ================================================================ --}}
 <div id="patient-modal"
      class="hidden fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center"
@@ -273,7 +216,6 @@
             <p class="text-gray-400 italic">Loading…</p>
         </div>
 
-        {{-- Clinical records link — shown after data loads --}}
         <div id="pat-clinical-link" class="hidden mt-4 pt-3 border-t border-gray-200">
             <a href="#"
                onclick="fetchClinicalRecords(); return false;"
@@ -300,7 +242,6 @@
 
 {{-- ================================================================
      CLINICAL RECORDS FLOATING PANEL
-     Draggable · no backdrop · close button only
 ================================================================ --}}
 <div id="clinical-panel"
      style="display:none; position:fixed; top:90px; right:30px; width:680px; max-height:420px;
@@ -308,7 +249,6 @@
             background:#fff; border:1px solid #d1d5db; border-radius:14px;
             box-shadow:0 16px 40px rgba(0,0,0,0.18);">
 
-    {{-- Drag handle --}}
     <div id="clinical-drag-handle"
          style="cursor:move; background:#f3f4f6; border-radius:14px 14px 0 0;
                 padding:10px 16px; display:flex; justify-content:space-between;
@@ -321,7 +261,6 @@
         </button>
     </div>
 
-    {{-- Scrollable records table --}}
     <div id="clinical-panel-content"
          style="overflow-y:auto; padding:12px; flex:1;">
         <p style="color:#9ca3af; font-style:italic;">Loading…</p>
@@ -333,82 +272,6 @@
 
 @push('scripts')
 <script>
-// ============================================================
-// LINE ITEMS — auto-number, auto-calculate totals
-// ============================================================
-let rowIndex = 5;
-
-function calcRow(row) {
-    const qty   = parseFloat(row.querySelector('.qty-input').value)   || 0;
-    const price = parseFloat(row.querySelector('.price-input').value) || 0;
-    const total = qty * price;
-    row.querySelector('.total-input').value = total > 0 ? total.toFixed(2) : '';
-    calcGrandTotal();
-}
-
-function calcGrandTotal() {
-    let grand = 0;
-    document.querySelectorAll('#items-body .total-input').forEach(inp => {
-        grand += parseFloat(inp.value) || 0;
-    });
-    document.getElementById('grand-total-display').textContent =
-        grand.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('grand-total-value').value = grand.toFixed(2);
-}
-
-function renumberRows() {
-    document.querySelectorAll('#items-body tr').forEach((tr, i) => {
-        const cell = tr.querySelector('.sn-cell');
-        if (cell) cell.textContent = i + 1;
-    });
-}
-
-function attachRowListeners(tr) {
-    tr.querySelector('.qty-input').addEventListener('input',   () => calcRow(tr));
-    tr.querySelector('.price-input').addEventListener('input', () => calcRow(tr));
-    tr.querySelector('.remove-row').addEventListener('click',  () => {
-        tr.remove();
-        renumberRows();
-        calcGrandTotal();
-    });
-}
-
-document.querySelectorAll('#items-body tr').forEach(attachRowListeners);
-
-document.getElementById('add-row').addEventListener('click', function () {
-    const tbody = document.getElementById('items-body');
-    const idx   = rowIndex++;
-    const sn    = tbody.rows.length + 1;
-    const tr    = document.createElement('tr');
-    tr.innerHTML = `
-        <td class="border border-gray-300 px-2 py-1 text-center text-gray-500 sn-cell">${sn}</td>
-        <td class="border border-gray-300 px-1 py-1">
-            <input type="text" name="items[${idx}][description]"
-                   class="w-full px-2 py-1 text-sm focus:outline-none focus:bg-blue-50 rounded">
-        </td>
-        <td class="border border-gray-300 px-1 py-1">
-            <input type="number" name="items[${idx}][qty]"
-                   class="w-full px-2 py-1 text-right text-sm focus:outline-none focus:bg-blue-50 rounded qty-input"
-                   min="0" step="any">
-        </td>
-        <td class="border border-gray-300 px-1 py-1">
-            <input type="number" name="items[${idx}][unit_price]"
-                   class="w-full px-2 py-1 text-right text-sm focus:outline-none focus:bg-blue-50 rounded price-input"
-                   min="0" step="any">
-        </td>
-        <td class="border border-gray-300 px-1 py-1">
-            <input type="number" name="items[${idx}][total]"
-                   class="w-full px-2 py-1 text-right text-sm bg-gray-50 focus:outline-none rounded total-input"
-                   readonly tabindex="-1">
-        </td>
-        <td class="border border-gray-300 px-1 py-1 text-center">
-            <button type="button" class="remove-row text-gray-300 hover:text-red-500 text-xs leading-none" title="Remove row">✕</button>
-        </td>`;
-    attachRowListeners(tr);
-    tbody.appendChild(tr);
-});
-
-
 // ============================================================
 // PATIENT LIVE SEARCH
 // ============================================================
@@ -465,13 +328,13 @@ document.addEventListener('click', function (e) {
 
 
 // ============================================================
-// PATIENT INFO MODAL — checkboxes, copy to Info box on Close
+// PATIENT INFO MODAL
 // ============================================================
 function showPatientInfo() {
     const id = patientIdInput.value;
     if (!id) return;
 
-    const content = document.getElementById('patient-modal-content');
+    const content  = document.getElementById('patient-modal-content');
     const clinLink = document.getElementById('pat-clinical-link');
     content.innerHTML = '<p class="text-gray-400 italic">Loading…</p>';
     clinLink.classList.add('hidden');
@@ -499,9 +362,9 @@ function showPatientInfo() {
 
         let html = '<div class="space-y-1">';
         fields.forEach((f, i) => {
-            if (!f.value) return; // skip nulls
-            const cbId   = `pat-cb-${i}`;
-            const line   = `${f.label}: ${f.value}`;
+            if (!f.value) return;
+            const cbId = `pat-cb-${i}`;
+            const line = `${f.label}: ${f.value}`;
             html += `<label for="${cbId}"
                            class="flex items-center gap-2 cursor-pointer text-sm py-1 px-2 rounded hover:bg-gray-100">
                         <input type="checkbox" id="${cbId}"
@@ -533,14 +396,14 @@ function closePatientAndApply() {
 
 
 // ============================================================
-// CLINICAL RECORDS FLOATING PANEL — draggable, close-only
+// CLINICAL RECORDS FLOATING PANEL
 // ============================================================
 const clinicalPanel = document.getElementById('clinical-panel');
 const dragHandle    = document.getElementById('clinical-drag-handle');
 let isDragging = false, dragOffX = 0, dragOffY = 0;
 
 dragHandle.addEventListener('mousedown', function (e) {
-    if (e.target.tagName === 'BUTTON') return; // don't drag when clicking Close
+    if (e.target.tagName === 'BUTTON') return;
     isDragging = true;
     const rect = clinicalPanel.getBoundingClientRect();
     dragOffX = e.clientX - rect.left;
@@ -627,7 +490,6 @@ document.querySelectorAll('.signature-option').forEach(btn => {
     });
 });
 
-// Close bank/signature modals on backdrop click (NOT patient modal — that has 2 explicit buttons)
 ['bank-modal', 'signature-modal'].forEach(id => {
     document.getElementById(id).addEventListener('click', function (e) {
         if (e.target === this) closeModal(id.replace('-modal', ''));
