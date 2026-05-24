@@ -96,7 +96,7 @@
             <label for="report_body" class="block text-sm font-medium text-gray-700 mb-1">Report / Prescription body</label>
             <textarea id="report_body"
                       name="report_body"
-                      rows="12"
+                      rows="20"
                       placeholder="Enter the report findings, treatment plan, or prescription details…"
                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono resize-y focus:outline-none focus:ring-2 focus:ring-offset-1"></textarea>
         </div>
