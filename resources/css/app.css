@@ -18,13 +18,13 @@
     }
     /* 2. Tanya (Ars) - Clinic ID 1 */
     body.clinic-1 {
-        background-image: url("../images/teeth-pattern-blue.svg"); /* Or whatever Ars uses */
+        background-image: url("/images/teeth-pattern-blue.svg");
         background-color: #3b82f6; /* A nice 'Ars' Blue */
     }
 
     /* 3. Mint (Dsm) - Clinic ID 2 */
     body.clinic-2 {
-        background-image: url("../images/teeth-pattern.svg");
+        background-image: url("/images/teeth-pattern.svg");
         background-color: #4bc35b; /* That Minty green you like */
     }
 
