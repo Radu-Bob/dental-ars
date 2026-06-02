@@ -24,13 +24,100 @@ class ReportController extends Controller
     }
     
     /**
-     * Display the 'Patients Attending' Report.
-     * This will correspond to the reports.patients_attending route.
+     * Display the 'Patients Attending' landing page.
      */
     public function patientsAttending()
     {
-        // Logic to fetch and process attendance data
         return view('reports::patients_attending');
+    }
+
+    /**
+     * Statistics Month — all patients with a clinical or estimate record in the chosen month/year.
+     */
+    public function statisticsMonth(Request $request)
+    {
+        $month = (int) $request->input('month', now()->month);
+        $year  = (int) $request->input('year',  now()->year);
+
+        $records = PatientClinical::with('patient')
+            ->whereYear('date',  $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date')
+            ->get();
+
+        return view('reports::patients_attending_statistics', compact('records', 'month', 'year'));
+    }
+
+    /**
+     * Export the Statistics Month list as a CSV file (opens natively in Excel).
+     * Requires the ALL_RECORDS_KEY password before streaming — GDPR bulk-data control.
+     * UTF-8 BOM is prepended so Excel renders special characters correctly.
+     */
+    public function statisticsMonthExport(Request $request)
+    {
+        if ($request->input('access_key') !== config('app.all_records_key')) {
+            return redirect()
+                ->route('reports.patients_attending.statistics_month', [
+                    'month' => $request->input('month', now()->month),
+                    'year'  => $request->input('year',  now()->year),
+                ])
+                ->with('error', 'Incorrect key. Export denied.');
+        }
+
+        $month = (int) $request->input('month', now()->month);
+        $year  = (int) $request->input('year',  now()->year);
+
+        $records = PatientClinical::with('patient')
+            ->whereYear('date',  $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date')
+            ->get();
+
+        $monthLabel = \DateTime::createFromFormat('!m', $month)->format('F');
+        $filename   = "statistics_month_{$monthLabel}_{$year}.csv";
+
+        $tmp = fopen('php://temp', 'w');
+        fwrite($tmp, "\xEF\xBB\xBF");
+        fputcsv($tmp, ['#', 'Date', 'Name', 'Age', 'Gender', 'Diagnostic', 'Description', 'Free']);
+
+        foreach ($records as $i => $record) {
+            $hasClinical = trim($record->description          ?? '') !== '';
+            $hasEstimate = trim($record->estimate_description ?? '') !== '';
+
+            $parts = [];
+            if ($hasClinical) $parts[] = $record->description;
+            if ($hasEstimate) $parts[] = $record->estimate_description;
+            if ($hasClinical && $hasEstimate) $parts[] = '[!]';
+            $description = implode(' | ', $parts);
+
+            $isFree = str_contains(strtolower($record->amount        ?? ''), 'free')
+                   || str_contains(strtolower($record->paid          ?? ''), 'free')
+                   || str_contains(strtolower($record->estimate_cost ?? ''), 'free')
+                   || str_contains(strtolower($record->estimate_paid ?? ''), 'free');
+
+            fputcsv($tmp, [
+                $i + 1,
+                \Carbon\Carbon::parse($record->date)->format('d/m/Y'),
+                $record->patient->name   ?? '',
+                $record->patient->age    ?? '',
+                $record->patient->gender ?? '',
+                $record->diagnostic      ?? '',
+                $description,
+                $isFree ? 'FREE' : '',
+            ]);
+        }
+
+        rewind($tmp);
+        $csv = stream_get_contents($tmp);
+        fclose($tmp);
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
+        ]);
     }
 
     /**

@@ -114,6 +114,8 @@ Route::middleware(['auth'])->group(function () {
         // 2. Report Links (All names are reports.____)
         //Route::get('insurance-report', [ReportController::class, 'insuranceReport'])->name('insurance_report');
         Route::get('patients-attending', [ReportController::class, 'patientsAttending'])->name('patients_attending');
+        Route::get('patients-attending/statistics-month', [ReportController::class, 'statisticsMonth'])->name('patients_attending.statistics_month');
+        Route::post('patients-attending/statistics-month/export', [ReportController::class, 'statisticsMonthExport'])->name('patients_attending.statistics_month.export');
         Route::get('payments-ledger', [ReportController::class, 'paymentsLedger'])->name('payments_ledger');
         Route::get('estimate-report', [ReportController::class, 'estimateReport'])->name('estimate_report');
         Route::get('patient-demographics', [ReportController::class, 'patientReport'])->name('patients_demographics');

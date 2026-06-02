@@ -13,7 +13,8 @@
 
         <!-- Dynamic report links + active highlighting -->
         @foreach ($reports as $report)
-            <a href="{{ route($report['route']) }}" @class(["w-full text-left block text-sm font-medium py-2 px-3 rounded-lg transition duration-150","bg-clinic text-white shadow-md" => Route::currentRouteName() === $report['route'], 'bg-gray-100 text-gray-700 hover:bg-gray-200' => Route::currentRouteName() !== $report['route'],])>
+            @php $active = str_starts_with(Route::currentRouteName() ?? '', $report['route']); @endphp
+            <a href="{{ route($report['route']) }}" @class(["w-full text-left block text-sm font-medium py-2 px-3 rounded-lg transition duration-150", "bg-clinic text-white shadow-md" => $active, 'bg-gray-100 text-gray-700 hover:bg-gray-200' => !$active])>
                 {{ $report['title'] }}
             </a>
         @endforeach
