@@ -16,32 +16,34 @@
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
         {{-- Month Attendance --}}
-        <div class="flex flex-col gap-3 p-6 border-2 border-gray-200 rounded-xl opacity-60 cursor-not-allowed">
+        <a href="{{ route('reports.patients_attending.month_attendance') }}"
+           class="group flex flex-col gap-3 p-6 border-2 border-gray-200 rounded-xl hover:border-clinic hover:shadow-md transition">
             <div class="text-3xl">📅</div>
             <div>
-                <div class="flex items-center gap-2">
-                    <div class="text-lg font-bold text-gray-800">Month Attendance</div>
-                    <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Coming soon</span>
-                </div>
+                <div class="text-lg font-bold text-gray-800 group-hover:text-clinic transition">Month Attendance</div>
                 <p class="text-sm text-gray-500 mt-1 leading-relaxed">
                     All patients with clinical or estimate records within a selected month.
                 </p>
             </div>
-        </div>
+            <div class="mt-auto text-sm font-medium text-clinic opacity-0 group-hover:opacity-100 transition">
+                Open Report →
+            </div>
+        </a>
 
         {{-- Quarter Attendance --}}
-        <div class="flex flex-col gap-3 p-6 border-2 border-gray-200 rounded-xl opacity-60 cursor-not-allowed">
+        <a href="{{ route('reports.patients_attending.quarter_attendance') }}"
+           class="group flex flex-col gap-3 p-6 border-2 border-gray-200 rounded-xl hover:border-clinic hover:shadow-md transition">
             <div class="text-3xl">📆</div>
             <div>
-                <div class="flex items-center gap-2">
-                    <div class="text-lg font-bold text-gray-800">Quarter Attendance</div>
-                    <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Coming soon</span>
-                </div>
+                <div class="text-lg font-bold text-gray-800 group-hover:text-clinic transition">Quarter Attendance</div>
                 <p class="text-sm text-gray-500 mt-1 leading-relaxed">
                     Attendance summary aggregated across a full quarter — three-month view.
                 </p>
             </div>
-        </div>
+            <div class="mt-auto text-sm font-medium text-clinic opacity-0 group-hover:opacity-100 transition">
+                Open Report →
+            </div>
+        </a>
 
         {{-- Statistics Month --}}
         <a href="{{ route('reports.patients_attending.statistics_month') }}"

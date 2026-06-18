@@ -35,10 +35,15 @@
         </button>
     </form>
 
-    {{-- Export to Excel — requires password before downloading --}}
-    <button type="button" onclick="document.getElementById('export-access-key').value = '';
-                                   document.getElementById('export-modal').classList.remove('hidden');
-                                   document.getElementById('export-access-key').focus();"
+    {{-- Export to Excel --}}
+    <button type="button"
+            onclick="(function(){
+                var k = prompt('Warning: Exported file is CSV type.\nEnter access key for full export, or leave empty for clinical records only.');
+                if (k !== null) {
+                    document.getElementById('stats-export-key').value = k;
+                    document.getElementById('stats-export-form').submit();
+                }
+            })();"
             class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg border
                    border-green-400 bg-white text-green-700 hover:bg-green-50 shadow-sm transition">
         ⬇ Export to Excel
@@ -51,11 +56,29 @@
     <h2 class="text-xl font-bold text-gray-800">
         Statistics Month —
         {{ DateTime::createFromFormat('!m', $month)->format('F') }} {{ $year }}
+        @if ($showAll)
+            <span class="ml-2 text-sm font-normal text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full">
+                All Records
+            </span>
+        @endif
     </h2>
-    <p class="text-sm text-gray-500 mt-1">
-        {{ $records->count() }} record(s) found.
-        Rows with a light-grey background are estimate-only records (no clinical description).
-    </p>
+    <p class="text-sm text-gray-500 mt-1">{{ $records->count() }} record(s) found.</p>
+    @if (! $showAll)
+        <p class="text-sm text-gray-500 mt-0.5">Clinical records</p>
+        <p class="mt-0.5">
+            <a href="#"
+               onclick="(function(){
+                   var k = prompt('Not implemented in Freeware version.');
+                   if (k !== null && k.trim() !== '') {
+                       document.getElementById('stats-all-key').value = k;
+                       document.getElementById('stats-all-form').submit();
+                   }
+               })(); return false;"
+               class="text-gray-400 hover:text-gray-500 text-xs transition">
+                all records
+            </a>
+        </p>
+    @endif
 </div>
 
 @if ($records->isEmpty())
@@ -78,6 +101,9 @@
             <thead>
                 <tr class="bg-gray-100 text-gray-600 uppercase text-xs tracking-wide">
                     <th class="px-3 py-3 text-center w-10">#</th>
+                    @if ($showAll)
+                        <th class="px-3 py-3 text-center w-20">Type</th>
+                    @endif
                     <th class="px-3 py-3 text-center w-24">Date</th>
                     <th class="px-3 py-3 text-left min-w-[9rem]">Name</th>
                     <th class="px-3 py-3 text-center w-12">Age</th>
@@ -89,82 +115,113 @@
             </thead>
 
             <tbody class="divide-y divide-gray-100">
+                @php $row = 0; @endphp
+
                 @foreach ($records as $record)
                     @php
-                        $hasClinical  = trim($record->description          ?? '') !== '';
-                        $hasEstimate  = trim($record->estimate_description ?? '') !== '';
-                        $hasBoth      = $hasClinical && $hasEstimate;
-                        $estimateOnly = !$hasClinical && $hasEstimate;
+                        $hasClinical   = trim($record->description          ?? '') !== '';
+                        $hasEstimate   = trim($record->estimate_description ?? '') !== '';
+                        $dateFormatted = \Carbon\Carbon::parse($record->date)->format('d/m/Y');
+                        $patientName   = $record->patient->name   ?? '—';
+                        $patientAge    = $record->patient->age    ?? '—';
+                        $patientGender = $record->patient->gender ?? '—';
 
                         $isFree = str_contains(strtolower($record->amount        ?? ''), 'free')
                                || str_contains(strtolower($record->paid          ?? ''), 'free')
                                || str_contains(strtolower($record->estimate_cost ?? ''), 'free')
                                || str_contains(strtolower($record->estimate_paid ?? ''), 'free');
-
-                        $rowBg = $hasEstimate ? 'bg-gray-100' : 'bg-white';
                     @endphp
 
-                    <tr class="{{ $rowBg }} hover:brightness-95 transition-all align-top">
-
-                        {{-- Serial # --}}
-                        <td class="px-3 py-2 text-center text-gray-400">{{ $loop->iteration }}</td>
-
-                        {{-- Date --}}
-                        <td class="px-3 py-2 text-center whitespace-nowrap text-gray-700">
-                            {{ \Carbon\Carbon::parse($record->date)->format('d/m/Y') }}
-                        </td>
-
-                        {{-- Name --}}
-                        <td class="px-3 py-2 font-medium text-gray-800">
-                            {{ $record->patient->name ?? '—' }}
-                        </td>
-
-                        {{-- Age --}}
-                        <td class="px-3 py-2 text-center text-gray-700">
-                            {{ $record->patient->age ?? '—' }}
-                        </td>
-
-                        {{-- Gender --}}
-                        <td class="px-3 py-2 text-center text-gray-700">
-                            {{ $record->patient->gender ?? '—' }}
-                        </td>
-
-                        {{-- Diagnostic --}}
-                        <td class="px-3 py-2 text-gray-700">
-                            {{ $record->diagnostic ?? '—' }}
-                        </td>
-
-                        {{-- Description — merged clinical + estimate --}}
-                        <td class="px-3 py-2 text-gray-700 leading-relaxed">
-                            @if ($hasClinical)
-                                <span>{{ $record->description }}</span>
-                            @endif
-                            @if ($hasEstimate)
-                                @if ($hasClinical)
-                                    <br>
+                    @if (! $showAll)
+                        {{-- Clinical-only mode: single row per record (original layout) --}}
+                        <tr class="bg-white hover:brightness-95 transition-all align-top">
+                            <td class="px-3 py-2 text-center text-gray-400">{{ ++$row }}</td>
+                            <td class="px-3 py-2 text-center whitespace-nowrap text-gray-700">{{ $dateFormatted }}</td>
+                            <td class="px-3 py-2 font-medium text-gray-800">
+                                @if ($record->patient)
+                                    <a href="{{ route('patients.show', ['patient_id' => $record->patient->patient_id]) }}"
+                                       onclick="window.open(this.href,'pt_{{ $record->patient->patient_id }}','width=1100,height=750,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes'); return false;"
+                                       class="text-clinic hover:underline">{{ $patientName }}</a>
+                                @else
+                                    {{ $patientName }}
                                 @endif
-                                <span class="text-gray-500 italic">{{ $record->estimate_description }}</span>
-                            @endif
-                            @if ($hasBoth)
-                                {{-- Both clinical and estimate description present on the same record --}}
-                                <br><span class="text-red-500 font-bold text-xs">?</span>
-                            @endif
-                            @if (!$hasClinical && !$hasEstimate)
-                                <span class="text-gray-400">—</span>
-                            @endif
-                        </td>
+                            </td>
+                            <td class="px-3 py-2 text-center text-gray-700">{{ $patientAge }}</td>
+                            <td class="px-3 py-2 text-center text-gray-700">{{ $patientGender }}</td>
+                            <td class="px-3 py-2 text-gray-700">{{ $record->diagnostic ?? '—' }}</td>
+                            <td class="px-3 py-2 text-gray-700">{{ $record->description ?: '—' }}</td>
+                            <td class="px-3 py-2 text-center">
+                                @if ($isFree)
+                                    <span class="inline-block bg-green-100 text-green-700 font-bold text-xs px-2 py-0.5 rounded-full border border-green-300">FREE</span>
+                                @endif
+                            </td>
+                        </tr>
 
-                        {{-- FREE flag --}}
-                        <td class="px-3 py-2 text-center">
-                            @if ($isFree)
-                                <span class="inline-block bg-green-100 text-green-700 font-bold text-xs
-                                             px-2 py-0.5 rounded-full border border-green-300">
-                                    FREE
-                                </span>
-                            @endif
-                        </td>
+                    @else
+                        {{-- All-records mode: separate rows with type pills --}}
 
-                    </tr>
+                        @if ($hasClinical)
+                            <tr class="bg-white hover:brightness-95 transition-all align-top">
+                                <td class="px-3 py-2 text-center text-gray-400">{{ ++$row }}</td>
+                                <td class="px-3 py-2 text-center">
+                                    <span class="inline-block bg-blue-50 text-blue-700 text-xs font-medium px-2 py-0.5 rounded-full border border-blue-200">Clinical</span>
+                                </td>
+                                <td class="px-3 py-2 text-center whitespace-nowrap text-gray-700">{{ $dateFormatted }}</td>
+                                <td class="px-3 py-2 font-medium text-gray-800">
+                                @if ($record->patient)
+                                    <a href="{{ route('patients.show', ['patient_id' => $record->patient->patient_id]) }}"
+                                       onclick="window.open(this.href,'pt_{{ $record->patient->patient_id }}','width=1100,height=750,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes'); return false;"
+                                       class="text-clinic hover:underline">{{ $patientName }}</a>
+                                @else
+                                    {{ $patientName }}
+                                @endif
+                            </td>
+                                <td class="px-3 py-2 text-center text-gray-700">{{ $patientAge }}</td>
+                                <td class="px-3 py-2 text-center text-gray-700">{{ $patientGender }}</td>
+                                <td class="px-3 py-2 text-gray-700">{{ $record->diagnostic ?? '—' }}</td>
+                                <td class="px-3 py-2 text-gray-700">{{ $record->description ?: '—' }}</td>
+                                <td class="px-3 py-2 text-center">
+                                    @if ($isFree)
+                                        <span class="inline-block bg-green-100 text-green-700 font-bold text-xs px-2 py-0.5 rounded-full border border-green-300">FREE</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endif
+
+                        @if ($hasEstimate)
+                            @php
+                                $estFree = str_contains(strtolower($record->estimate_cost ?? ''), 'free')
+                                        || str_contains(strtolower($record->estimate_paid ?? ''), 'free');
+                            @endphp
+                            <tr class="bg-gray-50 hover:brightness-95 transition-all align-top">
+                                <td class="px-3 py-2 text-center text-gray-400">{{ ++$row }}</td>
+                                <td class="px-3 py-2 text-center">
+                                    <span class="inline-block bg-orange-50 text-orange-700 text-xs font-medium px-2 py-0.5 rounded-full border border-orange-200">Estimate</span>
+                                </td>
+                                <td class="px-3 py-2 text-center whitespace-nowrap text-gray-700">{{ $dateFormatted }}</td>
+                                <td class="px-3 py-2 font-medium text-gray-800">
+                                @if ($record->patient)
+                                    <a href="{{ route('patients.show', ['patient_id' => $record->patient->patient_id]) }}"
+                                       onclick="window.open(this.href,'pt_{{ $record->patient->patient_id }}','width=1100,height=750,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes'); return false;"
+                                       class="text-clinic hover:underline">{{ $patientName }}</a>
+                                @else
+                                    {{ $patientName }}
+                                @endif
+                            </td>
+                                <td class="px-3 py-2 text-center text-gray-700">{{ $patientAge }}</td>
+                                <td class="px-3 py-2 text-center text-gray-700">{{ $patientGender }}</td>
+                                <td class="px-3 py-2 text-gray-700">{{ $record->diagnostic ?? '—' }}</td>
+                                <td class="px-3 py-2 text-gray-700 italic">{{ $record->estimate_description ?: '—' }}</td>
+                                <td class="px-3 py-2 text-center">
+                                    @if ($estFree)
+                                        <span class="inline-block bg-green-100 text-green-700 font-bold text-xs px-2 py-0.5 rounded-full border border-green-300">FREE</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endif
+
+                    @endif
+
                 @endforeach
             </tbody>
 
@@ -173,53 +230,33 @@
 
 @endif
 
-{{-- ── Error flash (wrong password) ───────────────────────────────────────── --}}
+{{-- ── Error flash ──────────────────────────────────────────────────────────── --}}
 @if (session('error'))
     <div class="mt-4 bg-red-50 border border-red-300 text-red-700 text-sm px-4 py-3 rounded-lg">
         {{ session('error') }}
     </div>
 @endif
 
-{{-- ── Export password modal ───────────────────────────────────────────────── --}}
-<div id="export-modal"
-     class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
+{{-- ── Hidden form: all records ─────────────────────────────────────────────── --}}
+@if (! $showAll)
+<form id="stats-all-form" method="POST"
+      action="{{ route('reports.patients_attending.statistics_month.all') }}"
+      style="display:none;">
+    @csrf
+    <input type="hidden" name="month" value="{{ $month }}">
+    <input type="hidden" name="year"  value="{{ $year }}">
+    <input type="hidden" name="access_key" id="stats-all-key">
+</form>
+@endif
 
-        <h3 class="text-lg font-bold text-gray-800 mb-1">Export to Excel</h3>
-        <p class="text-sm text-gray-500 mb-5">
-            Enter the records access key to download the patient list.
-        </p>
-
-        <form method="POST"
-              action="{{ route('reports.patients_attending.statistics_month.export') }}"
-              onsubmit="document.getElementById('export-modal').classList.add('hidden');"
->
-            @csrf
-            <input type="hidden" name="month" value="{{ $month }}">
-            <input type="hidden" name="year"  value="{{ $year }}">
-
-            <label class="block text-sm font-medium text-gray-700 mb-1">Access key</label>
-            <input type="password" name="access_key" id="export-access-key"
-                   autocomplete="off"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-5
-                          focus:outline-none focus:ring-2 focus:ring-clinic focus:ring-offset-1"
-                   placeholder="••••••••">
-
-            <div class="flex gap-3 justify-end">
-                <button type="button"
-                        onclick="document.getElementById('export-modal').classList.add('hidden');
-                                 document.getElementById('export-access-key').value = '';"
-                        class="btn-clinic-grey text-sm px-4 py-2 rounded-lg">
-                    Cancel
-                </button>
-                <button type="submit"
-                        class="btn-clinic-primary text-sm font-medium px-4 py-2 rounded-lg">
-                    Download
-                </button>
-            </div>
-        </form>
-
-    </div>
-</div>
+{{-- ── Hidden form: export ──────────────────────────────────────────────────── --}}
+<form id="stats-export-form" method="POST"
+      action="{{ route('reports.patients_attending.statistics_month.export') }}"
+      style="display:none;">
+    @csrf
+    <input type="hidden" name="month" value="{{ $month }}">
+    <input type="hidden" name="year"  value="{{ $year }}">
+    <input type="hidden" name="access_key" id="stats-export-key">
+</form>
 
 @endsection

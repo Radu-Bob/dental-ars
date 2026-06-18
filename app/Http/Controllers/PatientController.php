@@ -333,14 +333,19 @@ class PatientController extends Controller
                     $patient_acc_no = $patient->acc_no ?? null; 
                     
                     // Save the Insurance Record ONLY IF there is actual data
+                    $providerRow = DB::table('insurance_providers')
+                        ->where('provider_name', $validatedInsuranceData['insurance_provider'] ?? null)
+                        ->first();
+
                     $patient->insurance()->create([
-                        'ver_patient_id' => $patient->patient_id,
-                        'ver_acc_no' => $patient_acc_no, // Ensure this field is set if needed
-                        'insurance_no' => $validatedInsuranceData['insurance_no'] ?? null,
-                        //'insurance_serial' => $validatedInsuranceData['insurance_serial'] ?? null,
+                        'ver_patient_id'     => $patient->patient_id,
+                        'ver_acc_no'         => $patient_acc_no,
+                        'insurance_no'       => $validatedInsuranceData['insurance_no'] ?? null,
                         'insurance_provider' => $validatedInsuranceData['insurance_provider'] ?? null,
-                        'insurance_remarks' => $validatedInsuranceData['insurance_remarks'] ?? null,
-                        'insurance_id_no' => $validatedInsuranceData['insurance_id_no'] ?? null,
+                        'insurance_remarks'  => $validatedInsuranceData['insurance_remarks'] ?? null,
+                        'insurance_id_no'    => $validatedInsuranceData['insurance_id_no'] ?? null,
+                        'provider_id'        => $providerRow ? $providerRow->id : 0,
+                        'policy_status'      => 1,
                     ]);
                     
                     $successMessage = 'New Patient and Insurance records created successfully.';

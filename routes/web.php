@@ -115,7 +115,14 @@ Route::middleware(['auth'])->group(function () {
         //Route::get('insurance-report', [ReportController::class, 'insuranceReport'])->name('insurance_report');
         Route::get('patients-attending', [ReportController::class, 'patientsAttending'])->name('patients_attending');
         Route::get('patients-attending/statistics-month', [ReportController::class, 'statisticsMonth'])->name('patients_attending.statistics_month');
+        Route::post('patients-attending/statistics-month/all', [ReportController::class, 'statisticsMonthAll'])->name('patients_attending.statistics_month.all');
         Route::post('patients-attending/statistics-month/export', [ReportController::class, 'statisticsMonthExport'])->name('patients_attending.statistics_month.export');
+        Route::get('patients-attending/month-attendance', [ReportController::class, 'monthAttendance'])->name('patients_attending.month_attendance');
+        Route::post('patients-attending/month-attendance/all', [ReportController::class, 'monthAttendanceAll'])->name('patients_attending.month_attendance.all');
+        Route::post('patients-attending/month-attendance/export', [ReportController::class, 'monthAttendanceExport'])->name('patients_attending.month_attendance.export');
+        Route::get('patients-attending/quarter-attendance', [ReportController::class, 'quarterAttendance'])->name('patients_attending.quarter_attendance');
+        Route::post('patients-attending/quarter-attendance/all', [ReportController::class, 'quarterAttendanceAll'])->name('patients_attending.quarter_attendance.all');
+        Route::post('patients-attending/quarter-attendance/export', [ReportController::class, 'quarterAttendanceExport'])->name('patients_attending.quarter_attendance.export');
         Route::get('payments-ledger', [ReportController::class, 'paymentsLedger'])->name('payments_ledger');
         Route::get('estimate-report', [ReportController::class, 'estimateReport'])->name('estimate_report');
         Route::get('patient-demographics', [ReportController::class, 'patientReport'])->name('patients_demographics');

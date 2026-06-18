@@ -32,7 +32,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Statistics Month — all patients with a clinical or estimate record in the chosen month/year.
+     * Statistics Month — clinical records only (no password required).
      */
     public function statisticsMonth(Request $request)
     {
@@ -42,30 +42,34 @@ class ReportController extends Controller
         $records = PatientClinical::with('patient')
             ->whereYear('date',  $year)
             ->whereMonth('date', $month)
+            ->where(function ($q) {
+                $q->where('description', '!=', '')
+                  ->orWhere('amount',      '!=', '')
+                  ->orWhere('tooth',       '!=', '');
+            })
             ->orderBy('date')
             ->get();
 
-        return view('reports::patients_attending_statistics', compact('records', 'month', 'year'));
+        return view('reports::patients_attending_statistics', compact('records', 'month', 'year'))
+            ->with('showAll', false);
     }
 
     /**
-     * Export the Statistics Month list as a CSV file (opens natively in Excel).
-     * Requires the ALL_RECORDS_KEY password before streaming — GDPR bulk-data control.
-     * UTF-8 BOM is prepended so Excel renders special characters correctly.
+     * Statistics Month — all records (clinical + estimates). Requires ALL_RECORDS_KEY.
      */
-    public function statisticsMonthExport(Request $request)
+    public function statisticsMonthAll(Request $request)
     {
+        $month = (int) $request->input('month', now()->month);
+        $year  = (int) $request->input('year',  now()->year);
+
         if ($request->input('access_key') !== config('app.all_records_key')) {
             return redirect()
                 ->route('reports.patients_attending.statistics_month', [
-                    'month' => $request->input('month', now()->month),
-                    'year'  => $request->input('year',  now()->year),
+                    'month' => $month,
+                    'year'  => $year,
                 ])
-                ->with('error', 'Incorrect key. Export denied.');
+                ->with('error', 'Incorrect key. Access denied.');
         }
-
-        $month = (int) $request->input('month', now()->month);
-        $year  = (int) $request->input('year',  now()->year);
 
         $records = PatientClinical::with('patient')
             ->whereYear('date',  $year)
@@ -73,8 +77,36 @@ class ReportController extends Controller
             ->orderBy('date')
             ->get();
 
+        return view('reports::patients_attending_statistics', compact('records', 'month', 'year'))
+            ->with('showAll', true);
+    }
+
+    /**
+     * Statistics Month export — clinical only if no/wrong key, full if key matches.
+     */
+    public function statisticsMonthExport(Request $request)
+    {
+        $month      = (int) $request->input('month', now()->month);
+        $year       = (int) $request->input('year',  now()->year);
+        $fullAccess = $request->input('access_key') === config('app.all_records_key');
+
+        $query = PatientClinical::with('patient')
+            ->whereYear('date',  $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date');
+
+        if (! $fullAccess) {
+            $query->where(function ($q) {
+                $q->where('description', '!=', '')
+                  ->orWhere('amount',      '!=', '')
+                  ->orWhere('tooth',       '!=', '');
+            });
+        }
+
+        $records    = $query->get();
         $monthLabel = \DateTime::createFromFormat('!m', $month)->format('F');
-        $filename   = "statistics_month_{$monthLabel}_{$year}.csv";
+        $suffix     = $fullAccess ? 'full' : 'clinical';
+        $filename   = "statistics_month_{$monthLabel}_{$year}_{$suffix}.csv";
 
         $tmp = fopen('php://temp', 'w');
         fwrite($tmp, "\xEF\xBB\xBF");
@@ -86,8 +118,7 @@ class ReportController extends Controller
 
             $parts = [];
             if ($hasClinical) $parts[] = $record->description;
-            if ($hasEstimate) $parts[] = $record->estimate_description;
-            if ($hasClinical && $hasEstimate) $parts[] = '[!]';
+            if ($fullAccess && $hasEstimate) $parts[] = '[Est] ' . $record->estimate_description;
             $description = implode(' | ', $parts);
 
             $isFree = str_contains(strtolower($record->amount        ?? ''), 'free')
@@ -105,6 +136,221 @@ class ReportController extends Controller
                 $description,
                 $isFree ? 'FREE' : '',
             ]);
+        }
+
+        rewind($tmp);
+        $csv = stream_get_contents($tmp);
+        fclose($tmp);
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
+        ]);
+    }
+
+    // =========================================================================
+    // MONTH ATTENDANCE
+    // =========================================================================
+
+    public function monthAttendance(Request $request)
+    {
+        $month = (int) $request->input('month', now()->month);
+        $year  = (int) $request->input('year',  now()->year);
+
+        $records = PatientClinical::with('patient')
+            ->whereYear('date',  $year)
+            ->whereMonth('date', $month)
+            ->where(function ($q) {
+                $q->where('description', '!=', '')
+                  ->orWhere('amount',      '!=', '')
+                  ->orWhere('tooth',       '!=', '');
+            })
+            ->orderBy('date')
+            ->orderBy('patient_id')
+            ->get();
+
+        return view('reports::patients_attending_month', compact('records', 'month', 'year'))
+            ->with('showAll', false);
+    }
+
+    public function monthAttendanceAll(Request $request)
+    {
+        $month = (int) $request->input('month', now()->month);
+        $year  = (int) $request->input('year',  now()->year);
+
+        if ($request->input('access_key') !== config('app.all_records_key')) {
+            return redirect()
+                ->route('reports.patients_attending.month_attendance', ['month' => $month, 'year' => $year])
+                ->with('error', 'Incorrect key. Access denied.');
+        }
+
+        $records = PatientClinical::with('patient')
+            ->whereYear('date',  $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date')
+            ->orderBy('patient_id')
+            ->get();
+
+        return view('reports::patients_attending_month', compact('records', 'month', 'year'))
+            ->with('showAll', true);
+    }
+
+    public function monthAttendanceExport(Request $request)
+    {
+        $month      = (int) $request->input('month', now()->month);
+        $year       = (int) $request->input('year',  now()->year);
+        $fullAccess = $request->input('access_key') === config('app.all_records_key');
+
+        $query = PatientClinical::with('patient')
+            ->whereYear('date',  $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date')
+            ->orderBy('patient_id');
+
+        if (! $fullAccess) {
+            $query->where(function ($q) {
+                $q->where('description', '!=', '')
+                  ->orWhere('amount',      '!=', '')
+                  ->orWhere('tooth',       '!=', '');
+            });
+        }
+
+        $records    = $query->get();
+        $monthLabel = \DateTime::createFromFormat('!m', $month)->format('F');
+        $suffix     = $fullAccess ? 'full' : 'clinical';
+        $filename   = "month_attendance_{$monthLabel}_{$year}_{$suffix}.csv";
+
+        $tmp = fopen('php://temp', 'w');
+        fwrite($tmp, "\xEF\xBB\xBF");
+        fputcsv($tmp, ['#', 'Type', 'Date', 'Patient', 'Diagnostic', 'Tooth', 'Description', 'Amount', 'Paid', 'Balance', 'Remarks']);
+
+        $row = 0;
+        foreach ($records as $record) {
+            $hasClinical = trim($record->description ?? '') !== '' || trim($record->amount ?? '') !== '' || trim($record->tooth ?? '') !== '';
+            $hasEstimate = trim($record->estimate_description ?? '') !== '' || trim($record->estimate_cost ?? '') !== '';
+            $date = \Carbon\Carbon::parse($record->date)->format('d/m/Y');
+            $name = $record->patient->name ?? '';
+
+            if ($hasClinical) {
+                fputcsv($tmp, [++$row, 'Clinical', $date, $name, $record->diagnostic ?? '', $record->tooth ?? '', $record->description ?? '', $record->amount ?? '', $record->paid ?? '', $record->balance ?? '', $record->remarks ?? '']);
+            }
+            if ($fullAccess && $hasEstimate) {
+                fputcsv($tmp, [++$row, 'Estimate', $date, $name, $record->diagnostic ?? '', '', $record->estimate_description ?? '', $record->estimate_cost ?? '', $record->estimate_paid ?? '', $record->estimate_balance ?? '', $record->remarks ?? '']);
+            }
+        }
+
+        rewind($tmp);
+        $csv = stream_get_contents($tmp);
+        fclose($tmp);
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
+        ]);
+    }
+
+    // =========================================================================
+    // QUARTER ATTENDANCE
+    // =========================================================================
+
+    public function quarterAttendance(Request $request)
+    {
+        $quarter = max(1, min(4, (int) $request->input('quarter', (int) ceil(now()->month / 3))));
+        $year    = (int) $request->input('year', now()->year);
+        [$startMonth, $endMonth] = [($quarter - 1) * 3 + 1, $quarter * 3];
+
+        $records = PatientClinical::with('patient')
+            ->whereYear('date', $year)
+            ->whereMonth('date', '>=', $startMonth)
+            ->whereMonth('date', '<=', $endMonth)
+            ->where(function ($q) {
+                $q->where('description', '!=', '')
+                  ->orWhere('amount',      '!=', '')
+                  ->orWhere('tooth',       '!=', '');
+            })
+            ->orderBy('date')
+            ->orderBy('patient_id')
+            ->get();
+
+        return view('reports::patients_attending_quarter', compact('records', 'quarter', 'year'))
+            ->with('showAll', false);
+    }
+
+    public function quarterAttendanceAll(Request $request)
+    {
+        $quarter = max(1, min(4, (int) $request->input('quarter', (int) ceil(now()->month / 3))));
+        $year    = (int) $request->input('year', now()->year);
+
+        if ($request->input('access_key') !== config('app.all_records_key')) {
+            return redirect()
+                ->route('reports.patients_attending.quarter_attendance', ['quarter' => $quarter, 'year' => $year])
+                ->with('error', 'Incorrect key. Access denied.');
+        }
+
+        [$startMonth, $endMonth] = [($quarter - 1) * 3 + 1, $quarter * 3];
+
+        $records = PatientClinical::with('patient')
+            ->whereYear('date', $year)
+            ->whereMonth('date', '>=', $startMonth)
+            ->whereMonth('date', '<=', $endMonth)
+            ->orderBy('date')
+            ->orderBy('patient_id')
+            ->get();
+
+        return view('reports::patients_attending_quarter', compact('records', 'quarter', 'year'))
+            ->with('showAll', true);
+    }
+
+    public function quarterAttendanceExport(Request $request)
+    {
+        $quarter    = max(1, min(4, (int) $request->input('quarter', (int) ceil(now()->month / 3))));
+        $year       = (int) $request->input('year', now()->year);
+        $fullAccess = $request->input('access_key') === config('app.all_records_key');
+
+        [$startMonth, $endMonth] = [($quarter - 1) * 3 + 1, $quarter * 3];
+
+        $query = PatientClinical::with('patient')
+            ->whereYear('date', $year)
+            ->whereMonth('date', '>=', $startMonth)
+            ->whereMonth('date', '<=', $endMonth)
+            ->orderBy('date')
+            ->orderBy('patient_id');
+
+        if (! $fullAccess) {
+            $query->where(function ($q) {
+                $q->where('description', '!=', '')
+                  ->orWhere('amount',      '!=', '')
+                  ->orWhere('tooth',       '!=', '');
+            });
+        }
+
+        $records  = $query->get();
+        $suffix   = $fullAccess ? 'full' : 'clinical';
+        $filename = "quarter_attendance_Q{$quarter}_{$year}_{$suffix}.csv";
+
+        $tmp = fopen('php://temp', 'w');
+        fwrite($tmp, "\xEF\xBB\xBF");
+        fputcsv($tmp, ['#', 'Type', 'Date', 'Patient', 'Diagnostic', 'Tooth', 'Description', 'Amount', 'Paid', 'Balance', 'Remarks']);
+
+        $row = 0;
+        foreach ($records as $record) {
+            $hasClinical = trim($record->description ?? '') !== '' || trim($record->amount ?? '') !== '' || trim($record->tooth ?? '') !== '';
+            $hasEstimate = trim($record->estimate_description ?? '') !== '' || trim($record->estimate_cost ?? '') !== '';
+            $date = \Carbon\Carbon::parse($record->date)->format('d/m/Y');
+            $name = $record->patient->name ?? '';
+
+            if ($hasClinical) {
+                fputcsv($tmp, [++$row, 'Clinical', $date, $name, $record->diagnostic ?? '', $record->tooth ?? '', $record->description ?? '', $record->amount ?? '', $record->paid ?? '', $record->balance ?? '', $record->remarks ?? '']);
+            }
+            if ($fullAccess && $hasEstimate) {
+                fputcsv($tmp, [++$row, 'Estimate', $date, $name, $record->diagnostic ?? '', '', $record->estimate_description ?? '', $record->estimate_cost ?? '', $record->estimate_paid ?? '', $record->estimate_balance ?? '', $record->remarks ?? '']);
+            }
         }
 
         rewind($tmp);
