@@ -197,6 +197,12 @@
             New Patient
         </a>
 
+        {{-- Appointments Link --}}
+        <a href="{{ route('appointments.index') }}"
+        class="nav-link {{ Route::is('appointments.*') ? 'nav-link-active' : '' }}">
+            Appointments
+        </a>
+
         {{-- Reports Link — nurses get their own placeholder page --}}
         @if(Auth::user()->is_nurse)
             <a href="{{ route('nurse.reports') }}"

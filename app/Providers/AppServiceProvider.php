@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Patient::observe(\App\Observers\PatientObserver::class);
         \App\Models\PatientClinical::observe(\App\Observers\PatientClinicalObserver::class);
         \App\Models\Insurance::observe(\App\Observers\InsuranceObserver::class);
+        \App\Models\Appointment::observe(\App\Observers\AppointmentObserver::class);
 
         // 1. Share Global Variables (Theme and Clinic)
         view()->share([

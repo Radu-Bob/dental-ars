@@ -6,10 +6,33 @@
     <div class="bg-white p-6 rounded-2xl shadow-xl mb-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Clinic Calendar</h2>
         
-        <div id="calendar-container"></div> 
-        
-        <div class="mt-4 text-center">
-            <p class="text-sm text-gray-500">Appointments will appear here soon.</p>
+        <div id="calendar-container"></div>
+
+        @php
+            $todaysAppointments = \App\Models\Appointment::with('patient')
+                ->whereDate('appointment_date', today())
+                ->where('status', '!=', 'cancelled')
+                ->orderBy('start_time')
+                ->get();
+        @endphp
+
+        <div class="mt-4">
+            <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-2">Today's Appointments</h3>
+            @if ($todaysAppointments->isEmpty())
+                <p class="text-sm text-gray-500 text-center">No appointments booked for today.</p>
+            @else
+                <ul class="space-y-1.5 text-sm max-h-48 overflow-y-auto">
+                    @foreach ($todaysAppointments as $appt)
+                        <li class="flex justify-between items-center px-2 py-1 rounded hover:bg-gray-50">
+                            <span class="text-gray-700">{{ $appt->start_time }} – {{ $appt->patient->name ?? $appt->patient_name_freetext ?? '—' }}</span>
+                            <span class="text-xs text-gray-400">{{ ucfirst(str_replace('_', ' ', $appt->status)) }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+            <a href="{{ route('appointments.index') }}" class="block text-center text-xs text-clinic hover:underline mt-2">
+                View all appointments →
+            </a>
         </div>
     </div>
 

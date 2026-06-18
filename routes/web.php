@@ -8,6 +8,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\NurseController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AppointmentController;
 
 // ROOT REDIRECT: Correctly redirects to dashboard if logged in, otherwise to login.
 Route::get('/', function () {
@@ -162,6 +163,22 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
+
+    // --- Appointments Routes ---
+    Route::middleware('role:admin,doctor,nurse')->prefix('appointments')->name('appointments.')->group(function () {
+        Route::get('/', [AppointmentController::class, 'index'])->name('index');
+        Route::get('/create', [AppointmentController::class, 'create'])->name('create');
+        Route::post('/', [AppointmentController::class, 'store'])->name('store');
+        Route::get('/daily-notes', [AppointmentController::class, 'dailyNotes'])->name('daily_notes');
+        Route::get('/export.ics', [AppointmentController::class, 'exportIcs'])->name('export_ics');
+        Route::get('/patient-search', [ReportController::class, 'patientSearch'])->name('patient_search');
+
+        Route::middleware('role:doctor,nurse')->group(function () {
+            Route::get('/{appointment}/edit', [AppointmentController::class, 'edit'])->name('edit');
+            Route::put('/{appointment}', [AppointmentController::class, 'update'])->name('update');
+            Route::post('/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('cancel');
+        });
+    });
 
     // --- Partner Clinic Connection Routes ---
     Route::group(['prefix' => 'patients/partner', 'as' => 'patients.partner.', 'middleware' => 'role:admin,doctor'], function () {
