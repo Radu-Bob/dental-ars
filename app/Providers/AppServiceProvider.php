@@ -30,11 +30,12 @@ class AppServiceProvider extends ServiceProvider
         // 2. Specific View Composers
         View::composer('patients.index', RecentPatientsComposer::class);
 
-        // Share $reports with all report views — list is defined in config/reports.php
+        // Share $reports with all report views — list is defined in config/reports.php,
+        // filtered to the current user's role via ReportController::visibleReports()
         View::composer([
             'patients.reports.*',
             'patients.reports.partials.*',
-        ], fn ($view) => $view->with('reports', config('reports')));
+        ], fn ($view) => $view->with('reports', \App\Http\Controllers\ReportController::visibleReports()));
 
         View::addNamespace('reports', resource_path('views/patients/reports'));
     }

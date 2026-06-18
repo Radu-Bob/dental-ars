@@ -10,27 +10,45 @@
 
         @php
             $todaysAppointments = \App\Models\Appointment::with('patient')
-                ->whereDate('appointment_date', today())
+                ->whereDate('appointment_date', today(config('app.clinic_timezone')))
                 ->where('status', '!=', 'cancelled')
                 ->orderBy('start_time')
                 ->get();
+
+            $dashCalDate = request('cal_date', today(config('app.clinic_timezone'))->format('Y-m-d'));
+            $dashCalMonth = \Carbon\Carbon::parse($dashCalDate);
+            $dashMonthDatesWithAppointments = \App\Models\Appointment::where('status', '!=', 'cancelled')
+                ->whereBetween('appointment_date', [$dashCalMonth->copy()->startOfMonth()->format('Y-m-d'), $dashCalMonth->copy()->endOfMonth()->format('Y-m-d')])
+                ->pluck('appointment_date')
+                ->map(fn ($d) => \Carbon\Carbon::parse($d)->format('Y-m-d'))
+                ->unique()
+                ->values();
         @endphp
 
         <div class="mt-4">
-            <h3 class="text-sm font-bold text-gray-700 border-b pb-2 mb-2">Today's Appointments</h3>
-            @if ($todaysAppointments->isEmpty())
-                <p class="text-sm text-gray-500 text-center">No appointments booked for today.</p>
-            @else
-                <ul class="space-y-1.5 text-sm max-h-48 overflow-y-auto">
-                    @foreach ($todaysAppointments as $appt)
-                        <li class="flex justify-between items-center px-2 py-1 rounded hover:bg-gray-50">
-                            <span class="text-gray-700">{{ $appt->start_time }} – {{ $appt->patient->name ?? $appt->patient_name_freetext ?? '—' }}</span>
-                            <span class="text-xs text-gray-400">{{ ucfirst(str_replace('_', ' ', $appt->status)) }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
-            <a href="{{ route('appointments.index') }}" class="block text-center text-xs text-clinic hover:underline mt-2">
+            <h3 id="apptPanelHeading" class="text-sm font-bold text-gray-700 border-b pb-2 mb-2">Today's Appointments</h3>
+            <div id="apptPanelList">
+                @if ($todaysAppointments->isEmpty())
+                    <p class="text-sm text-gray-500 text-center">No appointments booked for today.</p>
+                @else
+                    <ul class="space-y-1.5 text-sm max-h-48 overflow-y-auto">
+                        @foreach ($todaysAppointments as $appt)
+                            <li class="flex justify-between items-center px-2 py-1 rounded hover:bg-gray-50">
+                                <span class="text-gray-700">
+                                    {{ \Carbon\Carbon::parse($appt->start_time)->format('H:i') }} –
+                                    @if ($appt->patient)
+                                        <a href="{{ route('patients.show', ['patient_id' => $appt->patient->patient_id]) }}" class="text-clinic hover:underline">{{ $appt->patient->name }}</a>
+                                    @else
+                                        {{ $appt->patient_name_freetext ?? '—' }}
+                                    @endif
+                                </span>
+                                <span class="text-xs text-gray-400">{{ ucfirst(str_replace('_', ' ', $appt->status)) }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+            <a id="apptViewAllLink" href="{{ route('appointments.index') }}" class="block text-center text-xs text-clinic hover:underline mt-2">
                 View all appointments →
             </a>
         </div>
@@ -59,8 +77,10 @@
     <script src="{{ asset('js/vendor/moment.min.js') }}"></script>
 
     <script>
-        // Start with the current month/year
-        let currentMonth = moment();
+        // Start with the month being viewed (?cal_date=) or today
+        let currentMonth = moment('{{ $dashCalDate }}');
+        const dashMarkedDates = @json($dashMonthDatesWithAppointments);
+        let dashSelectedDate = moment().format('YYYY-MM-DD');
 
         function renderCalendar(date) {
             const container = document.getElementById('calendar-container');
@@ -101,24 +121,66 @@
                 
                 //const isToday = currentDateStr === today ? 'bg-blue-600 text-white rounded-full' : 'hover:bg-gray-200';
                 // We remove the bg-blue-600 and apply the color via an inline style attribute later
-                const isTodayClass = currentDateStr === today ? 'text-white rounded-full' : 'hover:bg-gray-200';
-                const todayStyle = currentDateStr === today ? 'style="background-color: {{ $themeColor }};"' : '';
-                
-                // Reduced size for day numbers
-                //html += `<div class="p-1 ${isToday} cursor-pointer text-xs">${day}</div>`; // Reduced from text-sm
-                //html += `<div class="p-1 ${isTodayClass} cursor-pointer text-xs" ${todayStyle}>${day}</div>`;
-                // We add 'flex items-center justify-center' and a fixed aspect-square/size
-                html += `<div class="w-8 h-8 flex items-center justify-center ${isTodayClass} cursor-pointer text-xs mx-auto" ${todayStyle}>${day}</div>`;
+                const isSelected = currentDateStr === dashSelectedDate;
+                let dayClasses = 'hover:bg-gray-200';
+                let dayStyle = '';
+                if (currentDateStr === today) {
+                    dayClasses = 'text-white rounded-full';
+                    dayStyle = 'style="background-color: {{ $themeColor }};"';
+                }
+                if (isSelected) {
+                    dayClasses += ' ring-2 ring-offset-1';
+                    dayStyle = 'style="background-color: {{ $themeColor }}; --tw-ring-color: {{ $themeColor }};' + (currentDateStr === today ? '' : ' color:#1f2937;') + '"';
+                    if (currentDateStr !== today) dayClasses = dayClasses.replace('hover:bg-gray-200', 'bg-gray-100 font-bold');
+                }
+                const hasAppt = dashMarkedDates.includes(currentDateStr);
+                const dot = hasAppt
+                    ? `<span class="absolute bottom-0 w-1.5 h-1.5 rounded-full ${currentDateStr === today ? 'bg-white' : 'bg-orange-500'}"></span>`
+                    : '';
+
+                html += `<div class="w-8 h-8 flex items-center justify-center relative ${dayClasses} cursor-pointer text-xs mx-auto" ${dayStyle} onclick="selectAppointmentDay('${currentDateStr}')">${day}${dot}</div>`;
             }
 
             html += '</div>';
             container.innerHTML = html;
         }
 
+        function selectAppointmentDay(dateStr) {
+            dashSelectedDate = dateStr;
+            renderCalendar(currentMonth);
+
+            document.getElementById('apptViewAllLink').href = '{{ route("appointments.index") }}?date=' + dateStr;
+
+            fetch('{{ route("appointments.day_summary") }}?date=' + dateStr)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('apptPanelHeading').textContent = data.date;
+                    const listEl = document.getElementById('apptPanelList');
+
+                    if (!data.items.length) {
+                        listEl.innerHTML = '<p class="text-sm text-gray-500 text-center">No appointments booked for this day.</p>';
+                        return;
+                    }
+
+                    let html = '<ul class="space-y-1.5 text-sm max-h-48 overflow-y-auto">';
+                    data.items.forEach(function (item) {
+                        const nameHtml = item.patient_id
+                            ? `<a href="/patients/${item.patient_id}" class="text-clinic hover:underline">${item.name}</a>`
+                            : item.name;
+                        html += `<li class="flex justify-between items-center px-2 py-1 rounded hover:bg-gray-50">
+                            <span class="text-gray-700">${item.time} – ${nameHtml}</span>
+                            <span class="text-xs text-gray-400">${item.status}</span>
+                        </li>`;
+                    });
+                    html += '</ul>';
+                    listEl.innerHTML = html;
+                });
+        }
+
         // ... (changeMonth and initial call logic remains the same) ...
         function changeMonth(delta) {
             currentMonth.add(delta, 'months');
-            renderCalendar(currentMonth);
+            window.location.href = '{{ route("dashboard") }}?cal_date=' + currentMonth.format('YYYY-MM-01');
         }
 
         document.addEventListener('DOMContentLoaded', function() {

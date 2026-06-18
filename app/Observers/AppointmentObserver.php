@@ -10,7 +10,7 @@ class AppointmentObserver
 {
     private const SENSITIVE = [
         'patient_id', 'appointment_date', 'start_time', 'end_time',
-        'status', 'reason', 'notes',
+        'status', 'reason', 'notes', 'review_remarks',
     ];
 
     private static array $pendingAudit = [];

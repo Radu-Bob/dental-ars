@@ -20,13 +20,26 @@ class Appointment extends Model
         'status',
         'reason',
         'notes',
+        'review_remarks',
+        'previously_unconfirmed',
         'created_by',
     ];
 
     protected $casts = [
-        'reason' => 'encrypted',
-        'notes'  => 'encrypted',
+        'reason'         => 'encrypted',
+        'notes'          => 'encrypted',
+        'review_remarks' => 'encrypted',
     ];
+
+    public function needsReview(): bool
+    {
+        if ($this->patient_id !== null || $this->status === 'cancelled') {
+            return false;
+        }
+
+        return $this->status === 'completed'
+            || \Carbon\Carbon::parse($this->appointment_date)->startOfDay()->lt(today(config('app.clinic_timezone')));
+    }
 
     public function patient(): BelongsTo
     {

@@ -14,15 +14,28 @@ use Carbon\Carbon;
 class ReportController extends Controller
 {
     /**
+     * Reports list from config/reports.php, filtered to drop entries
+     * flagged 'admin_only' for any non-admin user. Single source of
+     * truth shared by the Reports Dashboard and the reports sidebar
+     * partial (bound via the View::composer in AppServiceProvider).
+     */
+    public static function visibleReports(): array
+    {
+        return array_values(array_filter(config('reports'), function ($report) {
+            return empty($report['admin_only']) || (Auth::user()?->is_admin ?? false);
+        }));
+    }
+
+    /**
      * Display the main Reports Dashboard view.
      * * @return \Illuminate\View\View
      */
     public function index()
     {
-        $reports = config('reports');
+        $reports = self::visibleReports();
         return view('reports::index', compact('reports'));
     }
-    
+
     /**
      * Display the 'Patients Attending' landing page.
      */
@@ -253,6 +266,26 @@ class ReportController extends Controller
             'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
             'Expires'             => '0',
         ]);
+    }
+
+    // =========================================================================
+    // APPOINTMENTS MONTH
+    // =========================================================================
+
+    public function appointmentsMonth(Request $request)
+    {
+        $month = (int) $request->input('month', now(config('app.clinic_timezone'))->month);
+        $year  = (int) $request->input('year',  now(config('app.clinic_timezone'))->year);
+
+        $appointments = \App\Models\Appointment::with('patient')
+            ->whereYear('appointment_date', $year)
+            ->whereMonth('appointment_date', $month)
+            ->where('status', '!=', 'cancelled')
+            ->orderBy('appointment_date')
+            ->orderBy('start_time')
+            ->get();
+
+        return view('reports::appointments_month', compact('appointments', 'month', 'year'));
     }
 
     // =========================================================================

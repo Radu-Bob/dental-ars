@@ -25,7 +25,7 @@
                             {{ Str::limit($flag->flag_reason, 80) }}
                         </p>
                         <p class="text-xs text-gray-400 mt-0.5">
-                            {{ \Carbon\Carbon::parse($flag->created_at)->format('d/m/Y H:i') }}
+                            {{ \Carbon\Carbon::parse($flag->created_at)->setTimezone(config('app.clinic_timezone'))->format('d/m/Y H:i') }}
                             — {{ $flag->user_name ?? 'System' }}
                         </p>
                     </div>
@@ -81,6 +81,7 @@
                     'InsuranceReport'  => 'Insurance Report',
                     'TreatmentReport'  => 'Treatment Report',
                     'User'             => 'User',
+                    'Appointment'      => 'Appointment',
                     default            => $entry->model_type,
                 };
 
@@ -136,8 +137,8 @@
                     <span class="text-gray-300 hidden sm:inline">|</span>
 
                     {{-- Timestamp --}}
-                    <span class="text-xs text-gray-400 ml-auto" title="{{ $entry->created_at }}">
-                        {{ \Carbon\Carbon::parse($entry->created_at)->format('d/m/Y  H:i:s') }}
+                    <span class="text-xs text-gray-400 ml-auto" title="{{ $entry->created_at }} UTC">
+                        {{ \Carbon\Carbon::parse($entry->created_at)->setTimezone(config('app.clinic_timezone'))->format('d/m/Y  H:i:s') }}
                     </span>
                 </div>
 
@@ -175,6 +176,13 @@
                         'insurance_provider'   => 'Insurance Provider',
                         'insurance_remarks'    => 'Insurance Remarks',
                         'invalidation_reason'  => 'Invalidation Reason',
+                        'appointment_date'      => 'Appointment Date',
+                        'start_time'            => 'Start Time',
+                        'end_time'              => 'End Time',
+                        'patient_id'            => 'Patient ID',
+                        'status'                => 'Status',
+                        'review_remarks'        => 'Review Remarks',
+                        'previously_unconfirmed' => 'Previously Unconfirmed',
                     ];
                 @endphp
 

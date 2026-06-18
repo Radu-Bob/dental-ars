@@ -72,7 +72,7 @@
                         <span class="font-medium text-gray-800">{{ $entry->user_name ?? 'System' }}</span>
                     </span>
                     <span class="text-xs text-gray-400 ml-auto">
-                        {{ \Carbon\Carbon::parse($entry->created_at)->format('H:i:s') }}
+                        {{ \Carbon\Carbon::parse($entry->created_at)->setTimezone(config('app.clinic_timezone'))->format('H:i:s') }}
                     </span>
                 </div>
 

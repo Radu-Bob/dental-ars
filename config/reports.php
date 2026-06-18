@@ -17,11 +17,6 @@ return [
         'route'       => 'reports.payments_ledger',
     ],
     [
-        'title'       => 'Estimate Report',
-        'description' => 'An overview of outstanding, accepted, and rejected treatment estimates.',
-        'route'       => 'reports.estimate_report',
-    ],
-    [
         'title'       => 'Patients with Active Insurance',
         'description' => 'Lists all patients who have an insurance record, sorted by the date of their most recent clinical record.',
         'route'       => 'reports.insurance',
@@ -40,10 +35,12 @@ return [
         'title'       => 'System Audit Log',
         'description' => 'Tamper-evident record of every create, update, and delete action performed on patient data.',
         'route'       => 'reports.system_audit',
+        'admin_only'  => true,
     ],
     [
         'title'       => 'Import Red Flags',
         'description' => 'All partner-import events where the user confirmed import despite a similar existing patient record.',
         'route'       => 'reports.audit_flags',
+        'admin_only'  => true,
     ],
 ];

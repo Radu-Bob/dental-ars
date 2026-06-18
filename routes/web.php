@@ -106,15 +106,21 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+    // Patients Attending landing page + Appointments Month report are also open to nurse
+    // (front-desk staff who handle bookings) — every other report stays admin/doctor only.
+    Route::middleware('role:admin,doctor,nurse')->name('reports.')->prefix('reports')->group(function () {
+        Route::get('patients-attending', [ReportController::class, 'patientsAttending'])->name('patients_attending');
+        Route::get('patients-attending/appointments-month', [ReportController::class, 'appointmentsMonth'])->name('patients_attending.appointments_month');
+    });
+
     // Group all report routes under the 'reports' URI prefix and the 'reports.' name prefix
     Route::middleware('role:admin,doctor')->name('reports.')->prefix('reports')->group(function () {
-        
+
         // 1. Reports Dashboard Index (URL: /reports | Name: reports.index)
         Route::get('/', [ReportController::class, 'index'])->name('index');
 
         // 2. Report Links (All names are reports.____)
         //Route::get('insurance-report', [ReportController::class, 'insuranceReport'])->name('insurance_report');
-        Route::get('patients-attending', [ReportController::class, 'patientsAttending'])->name('patients_attending');
         Route::get('patients-attending/statistics-month', [ReportController::class, 'statisticsMonth'])->name('patients_attending.statistics_month');
         Route::post('patients-attending/statistics-month/all', [ReportController::class, 'statisticsMonthAll'])->name('patients_attending.statistics_month.all');
         Route::post('patients-attending/statistics-month/export', [ReportController::class, 'statisticsMonthExport'])->name('patients_attending.statistics_month.export');
@@ -140,10 +146,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('insurance/export', [ReportController::class, 'exportInsuranceReport'])->name('insurance.export');
 
         // System Audit Log (admin only)
-        Route::get('system-audit', [ReportController::class, 'systemAudit'])->name('system_audit');
+        Route::get('system-audit', [ReportController::class, 'systemAudit'])->name('system_audit')->middleware('role:admin');
 
         // Red-Flag Import Log (admin only)
-        Route::get('audit-flags', [ReportController::class, 'auditFlags'])->name('audit_flags');
+        Route::get('audit-flags', [ReportController::class, 'auditFlags'])->name('audit_flags')->middleware('role:admin');
 
         // Treatment Report / Invoice — landing page (choice between Invoice and Report)
         Route::get('treatment-report', [ReportController::class, 'treatmentReportIndex'])->name('treatment_report');
@@ -172,11 +178,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/daily-notes', [AppointmentController::class, 'dailyNotes'])->name('daily_notes');
         Route::get('/export.ics', [AppointmentController::class, 'exportIcs'])->name('export_ics');
         Route::get('/patient-search', [ReportController::class, 'patientSearch'])->name('patient_search');
+        Route::get('/patient-summary', [ReportController::class, 'patientSummary'])->name('patient_summary');
+        Route::get('/day-summary', [AppointmentController::class, 'daySummary'])->name('day_summary');
+        Route::get('/week-summary', [AppointmentController::class, 'weekSummary'])->name('week_summary');
+        Route::get('/patient-history', [AppointmentController::class, 'patientHistory'])->name('patient_history');
 
         Route::middleware('role:doctor,nurse')->group(function () {
             Route::get('/{appointment}/edit', [AppointmentController::class, 'edit'])->name('edit');
             Route::put('/{appointment}', [AppointmentController::class, 'update'])->name('update');
             Route::post('/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('cancel');
+            Route::delete('/{appointment}', [AppointmentController::class, 'destroy'])->name('destroy');
         });
     });
 

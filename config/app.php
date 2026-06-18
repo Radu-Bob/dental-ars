@@ -69,6 +69,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Clinic Display Timezone
+    |--------------------------------------------------------------------------
+    |
+    | All stored timestamps (created_at/updated_at, audit log entries) are
+    | kept in true UTC. This is the East Africa Time (EAT, UTC+3, no DST)
+    | zone used to determine "today" for appointment scheduling and to
+    | display human-readable timestamps to clinic staff. Appointment
+    | date/time fields themselves (appointment_date, start_time, end_time)
+    | are plain wall-clock values with no timezone conversion — they are
+    | entered and shown exactly as typed, since the clinic only ever
+    | operates in this one timezone.
+    |
+    */
+
+    'clinic_timezone' => env('CLINIC_TIMEZONE', 'Africa/Dar_es_Salaam'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |
