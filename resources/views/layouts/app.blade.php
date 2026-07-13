@@ -178,16 +178,16 @@
             Dashboard
         </a>
         
-        {{-- Search / Listing Link — nurse gets their own route --}}
+        {{-- Search Link — nurse gets their own route --}}
         @if(Auth::user()->is_nurse)
             <a href="{{ route('nurse.patients.index') }}"
             class="nav-link {{ Route::is('nurse.patients.*') ? 'nav-link-active' : '' }}">
-                Search / Listing
+                Search
             </a>
         @else
             <a href="{{ route('patients.index') }}"
             class="nav-link {{ (Route::is('patients.index') || Route::is('patients.show')) ? 'nav-link-active' : '' }}">
-                Search / Listing
+                Search
             </a>
         @endif
 

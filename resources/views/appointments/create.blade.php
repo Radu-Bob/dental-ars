@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends($layout ?? 'layouts.app')
 
 @section('title', $appointment->exists ? 'Edit Appointment' : 'New Appointment')
 

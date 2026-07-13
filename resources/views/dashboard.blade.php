@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends($layout ?? 'layouts.app')
 
 @section('title', 'Dental Data System Dashboard')
 
@@ -216,6 +216,8 @@
         </a>
     </div>
 
+    {{-- 6-day attendance grid: hidden on mobile (not needed chair-side) --}}
+    @if(!$isMobile)
     {{-- *************************************************************** --}}
     {{-- NEW: Patient Attendance Audit (Last 6 Days) --}}
     {{-- *************************************************************** --}}
@@ -357,5 +359,6 @@
             {!! $renderCard($day) !!}
         @endforeach
     </div>
-    
+    @endif {{-- end !$isMobile --}}
+
 @endsection

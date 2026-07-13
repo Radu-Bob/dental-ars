@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends($layout ?? 'layouts.app')
 
 @section('left_content')
     {{-- (I have kept your sidebar logic as it was, it's looking quite sharp) --}}

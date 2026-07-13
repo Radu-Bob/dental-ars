@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Responsive fallback — kicks in when UA detection misses a small screen */
+@media (max-width: 768px) {
+    body { padding: 0.75rem !important; background-size: 200px 200px; }
+    .main-content { flex-direction: column !important; }
+    .left-column { width: 100% !important; }
+    .header { flex-wrap: wrap; gap: 0.5rem; padding: 1rem; }
+    .header nav { flex-wrap: wrap; gap: 0.5rem; }
+    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
 
     body {
         font-family: 'Inter', sans-serif;
