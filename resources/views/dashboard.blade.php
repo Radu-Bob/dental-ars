@@ -216,8 +216,6 @@
         </a>
     </div>
 
-    {{-- 6-day attendance grid: hidden on mobile (not needed chair-side) --}}
-    @if(!$isMobile)
     {{-- *************************************************************** --}}
     {{-- NEW: Patient Attendance Audit (Last 6 Days) --}}
     {{-- *************************************************************** --}}
@@ -345,7 +343,10 @@
             ';
         };
     @endphp
-    
+
+    {{-- 6-day attendance grid: hidden on mobile (not needed chair-side) --}}
+    @if(!($isMobile ?? false))
+
     {{-- First Row: Day 6, Day 5, Day 4 (Oldest Data) --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         @foreach ($firstRow as $day)
