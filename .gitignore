@@ -27,3 +27,4 @@ Thumbs.db
 copy_*.env
 .env.*
 log/
+tools/sessions/
