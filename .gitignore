@@ -28,3 +28,4 @@ copy_*.env
 .env.*
 log/
 tools/sessions/
+tools/DataSplitter/
