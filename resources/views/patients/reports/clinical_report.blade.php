@@ -26,7 +26,7 @@
         {{-- ===== ROW 1: Report number + Date ===== --}}
         <div class="grid grid-cols-2 gap-4 mb-5">
             <div>
-                <label for="report_number" class="block text-sm font-medium text-gray-700 mb-1">Report no.</label>
+                <label for="report_number" class="block text-sm font-medium text-gray-700 mb-1">Number:</label>
                 <input type="text"
                        id="report_number"
                        name="report_number"
