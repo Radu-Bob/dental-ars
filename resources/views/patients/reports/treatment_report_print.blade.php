@@ -167,8 +167,8 @@
             body { padding: 0; }
 
             @page {
-                /* top reduced by 1/4: 45→34mm; right 14mm; left 31mm */
-                margin: 34mm 14mm 18mm 31mm;
+                /* top reduced by 1/4: 45→34mm; +20mm (3 lines) for headed paper */
+                margin: 54mm 14mm 18mm 31mm;
             }
 
             /* Force borders in print — some browsers suppress them */
