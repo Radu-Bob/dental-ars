@@ -203,7 +203,7 @@
 
         <div class="report-meta">
             <div class="meta-row">
-                <span class="label">Report no.:</span>
+                <span class="label">Number:</span>
                 <span>{{ $data['report_number'] ?? '—' }}</span>
             </div>
             <div class="meta-row">
