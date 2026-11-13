@@ -15,11 +15,37 @@
         3 => 'Jul – Sep',
         4 => 'Oct – Dec',
     ];
+    $rowCount = 0;
+    $paidTotal = 0.0;
+    // Sum only plain TZS numbers of at least 10,000 (smaller values are not real TZS payments).
+    // Thousand separators (comma or space, e.g. "20 000", "20,000") are tolerated; anything else
+    // (e.g. "2000usd") is skipped.
+    $addPaid = function ($v) use (&$paidTotal) {
+        $v = trim((string) $v);
+        if ($v === '') return;
+        $n = preg_replace('/(?<=\d)[ ,](?=\d{3}(\D|$))/', '', $v);
+        if (preg_match('/^\d+(\.\d+)?$/', $n) && (float) $n >= 10000) {
+            $paidTotal += (float) $n;
+        }
+    };
+    foreach ($records as $r) {
+        $hasClinical = trim($r->description ?? '') !== '' || trim($r->amount ?? '') !== '' || trim($r->tooth ?? '') !== '';
+        $hasEstimate = trim($r->estimate_description ?? '') !== '' || trim($r->estimate_cost ?? '') !== '';
+        if ($hasClinical) $addPaid($r->paid);
+        if ($showAll && $hasEstimate) $addPaid($r->estimate_paid);
+        if ($showAll) {
+            if ($hasClinical) $rowCount++;
+            if ($hasEstimate) $rowCount++;
+        } else {
+            $rowCount++;
+        }
+    }
 @endphp
 
 {{-- ── Filter bar ───────────────────────────────────────────────────────────── --}}
 <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
 
+  <div class="flex gap-3 flex-wrap" style="align-items:flex-end;">
     <form method="GET" action="{{ route('reports.patients_attending.quarter_attendance') }}"
           class="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-5 py-3">
 
@@ -49,6 +75,19 @@
 
     </form>
 
+    {{-- Paid total (TZS) — click the box to show / hide --}}
+    <div class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-gray-700 min-w-[8.5rem] text-right"
+         style="margin-left:1.5rem; cursor:pointer; user-select:none;"
+         title="Click to show / hide total paid"
+         onclick="(function(){
+             var b = document.getElementById('paid-total-box');
+             b.style.visibility = (b.style.visibility === 'hidden') ? 'visible' : 'hidden';
+         })();">
+        <span id="paid-total-box" style="visibility:hidden;"><strong>{{ number_format($paidTotal, 0) }}</strong> TZS</span>
+        <span style="visibility:hidden;">&nbsp;</span>
+    </div>
+  </div>
+
     {{-- Export to Excel --}}
     <button type="button"
             onclick="(function(){
@@ -76,19 +115,6 @@
             </span>
         @endif
     </h2>
-    @php
-        $rowCount = 0;
-        foreach ($records as $r) {
-            $hasClinical = trim($r->description ?? '') !== '' || trim($r->amount ?? '') !== '' || trim($r->tooth ?? '') !== '';
-            $hasEstimate = trim($r->estimate_description ?? '') !== '' || trim($r->estimate_cost ?? '') !== '';
-            if ($showAll) {
-                if ($hasClinical) $rowCount++;
-                if ($hasEstimate) $rowCount++;
-            } else {
-                $rowCount++;
-            }
-        }
-    @endphp
     <p class="text-sm text-gray-500 mt-1">{{ $rowCount }} record(s) found.</p>
     @if (! $showAll)
         <p class="text-sm text-gray-500 mt-0.5">Clinical records</p>
