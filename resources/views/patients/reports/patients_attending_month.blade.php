@@ -81,7 +81,7 @@
     {{-- Export to Excel --}}
     <button type="button"
             onclick="(function(){
-                var k = prompt('Warning: Exported file is CSV type.\nEnter access key for full export, or leave empty for clinical records only.');
+                var k = {{ $showAll ? 'true' : 'false' }} ? prompt('Warning: Exported file is CSV type.\nEnter access key to export all records (clinical + estimate).') : '';
                 if (k !== null) {
                     document.getElementById('month-export-key').value = k;
                     document.getElementById('month-export-form').submit();
@@ -264,6 +264,7 @@
     @csrf
     <input type="hidden" name="month" value="{{ $month }}">
     <input type="hidden" name="year"  value="{{ $year }}">
+    <input type="hidden" name="view_mode" value="{{ $showAll ? 'all' : 'clinical' }}">
     <input type="hidden" name="access_key" id="month-export-key">
 </form>
 

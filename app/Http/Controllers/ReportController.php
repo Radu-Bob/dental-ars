@@ -101,7 +101,15 @@ class ReportController extends Controller
     {
         $month      = (int) $request->input('month', now()->month);
         $year       = (int) $request->input('year',  now()->year);
-        $fullAccess = $request->input('access_key') === config('app.all_records_key');
+        // Export follows the on-screen view: 'all' (clinical + estimate, key required) or 'clinical'.
+        $viewAll    = $request->input('view_mode') === 'all';
+        $fullAccess = $viewAll && $request->input('access_key') === config('app.all_records_key');
+
+        if ($viewAll && ! $fullAccess) {
+            return redirect()
+                ->route('reports.patients_attending.statistics_month', ['month' => $month, 'year' => $year])
+                ->with('error', 'Incorrect key. Export cancelled.');
+        }
 
         $query = PatientClinical::with('patient')
             ->whereYear('date',  $year)
@@ -215,7 +223,15 @@ class ReportController extends Controller
     {
         $month      = (int) $request->input('month', now()->month);
         $year       = (int) $request->input('year',  now()->year);
-        $fullAccess = $request->input('access_key') === config('app.all_records_key');
+        // Export follows the on-screen view: 'all' (clinical + estimate, key required) or 'clinical'.
+        $viewAll    = $request->input('view_mode') === 'all';
+        $fullAccess = $viewAll && $request->input('access_key') === config('app.all_records_key');
+
+        if ($viewAll && ! $fullAccess) {
+            return redirect()
+                ->route('reports.patients_attending.month_attendance', ['month' => $month, 'year' => $year])
+                ->with('error', 'Incorrect key. Export cancelled.');
+        }
 
         $query = PatientClinical::with('patient')
             ->whereYear('date',  $year)
@@ -344,7 +360,15 @@ class ReportController extends Controller
     {
         $quarter    = max(1, min(4, (int) $request->input('quarter', (int) ceil(now()->month / 3))));
         $year       = (int) $request->input('year', now()->year);
-        $fullAccess = $request->input('access_key') === config('app.all_records_key');
+        // Export follows the on-screen view: 'all' (clinical + estimate, key required) or 'clinical'.
+        $viewAll    = $request->input('view_mode') === 'all';
+        $fullAccess = $viewAll && $request->input('access_key') === config('app.all_records_key');
+
+        if ($viewAll && ! $fullAccess) {
+            return redirect()
+                ->route('reports.patients_attending.quarter_attendance', ['quarter' => $quarter, 'year' => $year])
+                ->with('error', 'Incorrect key. Export cancelled.');
+        }
 
         [$startMonth, $endMonth] = [($quarter - 1) * 3 + 1, $quarter * 3];
 
